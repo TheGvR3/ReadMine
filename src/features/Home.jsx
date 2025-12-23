@@ -1,0 +1,194 @@
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Book from "../components/Book";
+import { secureFetch } from "../utils/secureFetch";
+
+function Home() {
+  const navigate = useNavigate();
+
+  // Stati locali per le tre categorie
+  const [books, setBooks] = useState([]);
+  const [autori, setAutori] = useState([]); 
+  const [serie, setSerie] = useState([]); 
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Funzione per ottenere N elementi casuali da un array
+  const getRandomElements = (array, n) => {
+    return [...array].sort(() => 0.5 - Math.random()).slice(0, n);
+  };
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        // Eseguiamo le chiamate in parallelo per efficienza
+        const [resOpere, resAutori, resSerie] = await Promise.all([
+          secureFetch(`${import.meta.env.VITE_API_BASE_URL}/opere`, {}, navigate),
+          secureFetch(`${import.meta.env.VITE_API_BASE_URL}/autori`, {}, navigate),
+          secureFetch(`${import.meta.env.VITE_API_BASE_URL}/serie`, {}, navigate),
+        ]);
+
+        if (!resOpere || !resAutori || !resSerie) return;
+
+        if (resOpere.ok && resAutori.ok && resSerie.ok) {
+          const dataOpere = await resOpere.json();
+          const dataAutori = await resAutori.json();
+          const dataSerie = await resSerie.json();
+
+          setBooks(dataOpere);
+          setAutori(dataAutori);
+          setSerie(dataSerie);
+        } else {
+          setError("Errore nel caricamento di alcune sezioni.");
+        }
+      } catch (err) {
+        setError("Errore di connessione al server.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar setError={setError} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Intestazione */}
+        <div className="bg-white p-8 rounded-xl shadow-xl text-center mb-10 border-t-4 border-indigo-600">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
+            👋 Benvenuto nella tua Dashboard
+          </h1>
+          <p className="text-lg text-gray-600">
+            Gestisci le tue opere, gli autori e le serie preferite.
+          </p>
+        </div>
+
+        {loading && (
+          <p className="text-center text-lg text-gray-600">
+            Caricamento in corso...
+          </p>
+        )}
+        {error && (
+          <div className="text-center text-red-600 font-medium my-6">
+            {error}
+          </div>
+        )}
+
+        {/* --- SEZIONE SCOPRI OPERE (RANDOM) --- */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6 border-b pb-2">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              🎲 Scopri Opere
+            </h2>
+            {/* Pulsante opzionale per rimescolare i suggerimenti */}
+            <Link
+              to="/listopere"
+              className="text-sm text-indigo-600 hover:underline font-medium"
+            >
+              Vedi tutte
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {books.length > 0
+              ? getRandomElements(books, 4).map((book) => (
+                  <Link key={book.id_opera} to={`/opere/${book.id_opera}`}>
+                    <Book
+                      title={book.titolo}
+                      author={book.autori}
+                      anno={book.anno_pubblicazione}
+                      stato_opera={book.stato_opera}
+                      serie={book.serie}
+                    />
+                  </Link>
+                ))
+              : !loading && (
+                  <p className="col-span-full text-center text-gray-500">
+                    Nessuna opera disponibile.
+                  </p>
+                )}
+          </div>
+        </section>
+
+        {/* --- SEZIONE SCOPRI AUTORI --- */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6 border-b pb-2">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              ✍️ Autori Consigliati
+            </h2>
+            <Link
+              to="/listautori"
+              className="text-sm text-indigo-600 hover:underline font-medium"
+            >
+              Vedi tutti
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {autori.length > 0
+              ? getRandomElements(autori, 6).map((autore) => (
+                  <Link
+                    key={autore.id_autore}
+                    to={`/autore/${autore.id_autore}`}
+                    className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-all text-center border border-gray-100 hover:border-indigo-200"
+                  >
+                    <p className="font-semibold text-indigo-600 truncate">
+                      {autore.nome_autore}
+                    </p>
+                  </Link>
+                ))
+              : !loading && (
+                  <p className="text-gray-500 italic">Nessun autore trovato.</p>
+                )}
+          </div>
+        </section>
+
+        {/* --- SEZIONE SCOPRI SERIE --- */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6 border-b pb-2">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              📺 Esplora Serie
+            </h2>
+            <Link
+              to="/listserie"
+              className="text-sm text-indigo-600 hover:underline font-medium"
+            >
+              Vedi tutte
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {serie.length > 0
+              ? getRandomElements(serie, 5).map((s) => (
+                  <Link
+                    key={s.id_serie}
+                    to={`/serie/${s.id_serie}`}
+                    className="bg-white p-4 rounded-lg border-l-4 border-indigo-500 shadow-sm hover:bg-indigo-50 transition-colors group"
+                  >
+                    <p className="font-bold text-gray-800 group-hover:text-indigo-700 transition-colors">
+                      {s.nome_serie}
+                    </p>
+                    <p className="text-[10px] text-gray-400 uppercase mt-1 tracking-wider font-semibold">
+                      Catalogo Serie
+                    </p>
+                  </Link>
+                ))
+              : !loading && (
+                  <p className="text-gray-500 italic">Nessuna serie trovata.</p>
+                )}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export default Home;
