@@ -256,7 +256,7 @@ function Register() {
         <h2 className="text-2xl font-bold mb-4">Hai già un account?</h2>
         <p className="text-gray-600 mb-4">Accedi qui!</p>
         <Link
-          to="/Login"
+          to="/login"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Login

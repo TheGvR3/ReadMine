@@ -156,7 +156,7 @@ function Login() {
           Registrati ora per accedere a tutte le funzionalità!
         </p>
         <Link
-          to="/Register"
+          to="/register"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Registrati

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // import delle pagine
 // Autenticazione
@@ -41,7 +41,7 @@ function App() {
     // È il "contenitore" principale che abilita il routing in tutta l'app.
     // Gestisce la navigazione tramite URL senza ricaricare la pagina.
     // -------------------------------------------------------------------------
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* ---------------------------------------------------------------------
             Redirect di default:
@@ -101,7 +101,7 @@ function App() {
            --------------------------------------------------------------------- */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
