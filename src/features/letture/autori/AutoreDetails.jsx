@@ -23,7 +23,7 @@ function AutoreDetails() {
 
       // 1. Carica Nome Autore (sempre prioritario)
       const resAutore = await secureFetch(
-        `http://localhost:3000/autori/${id_autore}`,
+        `${import.meta.env.VITE_API_BASE_URL}/autori/${id_autore}`,
         {},
         navigate
       );
