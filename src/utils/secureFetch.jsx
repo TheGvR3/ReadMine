@@ -34,6 +34,7 @@ export async function secureFetch(url, options = {}, navigate) {
       const newToken = await refreshAccessToken();
       // 3.2 Se il refresh fallisce → l'utente deve rifare login
       if (!newToken) {
+        console.warn("Refresh fallito o sessione scaduta. Redirect al login.");
         localStorage.removeItem("accessToken");
         navigate("/login");
         return null; // interrompo

@@ -70,7 +70,7 @@ function UserProfile() {
               {user && (
                 <div className="divide-y divide-gray-200">
                   {/* Sezione Avatar/Nome Completo (simulato) */}
-                  <div className="pb-6 mb-6 border-b border-gray-100 text-center">
+                  <div className="pb-6 mb-6 text-center">
                     <div className="mx-auto h-20 w-20 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-3xl font-bold mb-3">
                       {user.nome ? user.nome[0] : "U"}
                     </div>
