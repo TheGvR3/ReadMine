@@ -94,13 +94,12 @@ function Login() {
   // ---------------------------------------------------------------------------
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 gap-8">
-      <div className="text-center mb-4 font-mono">
-        <div className="inline-block bg-gray-800 text-white px-4 py-2 rounded-md shadow-lg">
-          <span className="text-green-400">~/</span>
-          <span className="font-bold">READMINE</span>
-          <span className="animate-pulse text-blue-400">_</span>
-        </div>
-        <p className="text-gray-400 text-xs mt-2 italic">
+      <div className="text-center mb-2">
+        <h1 className="text-5xl font-extrabold tracking-tighter">
+          <span className="text-blue-600">READ</span>
+          <span className="text-gray-800">MINE</span>
+        </h1>
+        <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest font-mono">
           Explore your own library
         </p>
       </div>
