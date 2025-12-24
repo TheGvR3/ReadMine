@@ -51,12 +51,18 @@ function OperaDetail() {
   // ---------------------------------------------------------------------------
   // 4. LOGICA DI SUPPORTO (Parsing stringhe dalla Vista SQL)
   // ---------------------------------------------------------------------------
-  const autoriList = opera?.autori
-    ? opera.autori.split(",").map((a) => a.trim())
+  const autoriProcessati = opera?.autori
+    ? opera.autori.split(",").map((nome, index) => ({
+        nome: nome.trim(),
+        id: opera.autori_ids[index],
+      }))
     : [];
 
-  const generiList = opera?.generi
-    ? opera.generi.split(",").map((g) => g.trim())
+  const generiProcessati = opera?.generi
+    ? opera.generi.split(",").map((nome, index) => ({
+        nome: nome.trim(),
+        id: opera.generi_ids[index],
+      }))
     : [];
 
   const borderClass =
@@ -65,7 +71,7 @@ function OperaDetail() {
   // ---------------------------------------------------------------------------
   // 5. GESTIONE AZIONI (MODIFICA ED ELIMINA)
   // ---------------------------------------------------------------------------
-  
+
   // Naviga alla pagina di modifica
   const handleUpdate = () => {
     navigate(`/updateopera/${id_opera}`);
@@ -105,16 +111,21 @@ function OperaDetail() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {loading && (
-          <p className="text-center text-lg text-gray-700">Caricamento in corso...</p>
+          <p className="text-center text-lg text-gray-700">
+            Caricamento in corso...
+          </p>
         )}
 
         {error && (
-          <p className="text-center text-xl text-red-600 font-medium my-4">{error}</p>
+          <p className="text-center text-xl text-red-600 font-medium my-4">
+            {error}
+          </p>
         )}
 
         {opera && (
-          <div className={`bg-white rounded-xl shadow-xl overflow-hidden border-r-8 ${borderClass} transition-all duration-200`}>
-            
+          <div
+            className={`bg-white rounded-xl shadow-xl overflow-hidden border-r-8 ${borderClass} transition-all duration-200`}
+          >
             {/* INTESTAZIONE / COPERTINA */}
             <div className="bg-linear-to-br from-gray-100 to-gray-200 p-8 border-b">
               <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -151,29 +162,64 @@ function OperaDetail() {
               {/* Autori */}
               <p className="text-lg text-gray-800">
                 <span className="font-semibold">Autore/i:</span>{" "}
-                {autoriList.length > 0 ? autoriList.join(" • ") : "N/A"}
+                {autoriProcessati.length > 0
+                  ? autoriProcessati.map((autore, index) => (
+                      <span key={autore.id || index}>
+                        <Link
+                          to={`/autore/${autore.id}`}
+                          className="text-indigo-600 hover:underline font-medium"
+                        >
+                          {autore.nome}
+                        </Link>
+                        {/* Aggiunge il pallino separatore tranne che dopo l'ultimo elemento */}
+                        {index < autoriProcessati.length - 1 && " • "}
+                      </span>
+                    ))
+                  : "N/A"}
               </p>
 
               {/* Anno */}
               <p className="text-lg text-gray-800">
-                <span className="font-semibold">Anno:</span> {opera.anno_pubblicazione}
+                <span className="font-semibold">Anno:</span>{" "}
+                {opera.anno_pubblicazione}
               </p>
 
               {/* Lingua */}
               <p className="text-lg text-gray-800">
-                <span className="font-semibold">Lingua Originale:</span> {opera.lingua_originale || "N/A"}
+                <span className="font-semibold">Lingua Originale:</span>{" "}
+                {opera.lingua_originale || "N/A"}
               </p>
 
               {/* Generi */}
-              <p className="text-lg font-semibold text-indigo-600">
-                {generiList.join(" • ")}
-              </p>
+              <div className="text-lg font-semibold text-indigo-600 flex flex-wrap gap-y-1">
+                {generiProcessati.length > 0
+                  ? generiProcessati.map((genere, index) => (
+                      <span key={genere.id || index}>
+                        <Link
+                          to={`/genere/${genere.id}`}
+                          className="hover:text-indigo-800 hover:underline"
+                        >
+                          {genere.nome}
+                        </Link>
+                        {index < generiProcessati.length - 1 && (
+                          <span className="mx-2 text-gray-400">•</span>
+                        )}
+                      </span>
+                    ))
+                  : "N/A"}
+              </div>
 
               {/* Tipo + Stato */}
               <p className="text-sm text-gray-600 uppercase tracking-wider">
                 {opera.tipo}
                 {" • "}
-                <span className={opera.stato_opera === "finito" ? "text-gray-500" : "text-green-600 font-semibold"}>
+                <span
+                  className={
+                    opera.stato_opera === "finito"
+                      ? "text-gray-500"
+                      : "text-green-600 font-semibold"
+                  }
+                >
                   {opera.stato_opera}
                 </span>
               </p>
@@ -204,7 +250,9 @@ function OperaDetail() {
         )}
 
         {!loading && !opera && !error && (
-          <p className="text-center text-xl text-gray-500 mt-8">Opera non trovata.</p>
+          <p className="text-center text-xl text-gray-500 mt-8">
+            Opera non trovata.
+          </p>
         )}
         {/* PULSANTE TORNA ALLA LISTA — SEMPRE MOSTRATO UNA SOLA VOLTA */}
         <div className="flex justify-center mt-10">
