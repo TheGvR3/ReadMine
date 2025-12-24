@@ -35,12 +35,14 @@ const Logout = ({ setUser, setError }) => {
         const err = await response.json().catch(() => ({}));
         throw new Error(err.error || "Errore durante il logout");
       }
-      // 4. Logout riuscito
-      localStorage.removeItem("accessToken");
-      navigate("/login");
     } catch (error) {
-      // 5. Errori di rete o eccezioni
-      setError(error.message || "Si è verificato un errore. Riprova!");
+      
+      console.error("Errore server durante logout:", error);
+    }finally {
+        // 4. Logout locale: pulizia garantita
+        localStorage.removeItem("accessToken");
+        if (setUser) setUser(null); // Resetta lo stato utente se presente
+        navigate("/login");
     }
   };
 
