@@ -62,21 +62,9 @@ function Book({
         )}
 
         {/* Tipo + Stato */}
-        {(tipo || stato_opera) && (
+        {tipo && (
           <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
             {tipo}
-            {tipo && stato_opera && " • "}
-            {stato_opera && (
-              <span
-                className={
-                  stato_opera === "finito"
-                    ? "text-gray-500"
-                    : "text-green-600 font-semibold"
-                }
-              >
-                {stato_opera}
-              </span>
-            )}
           </p>
         )}
 

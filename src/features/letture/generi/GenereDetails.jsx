@@ -123,6 +123,12 @@ function GenereDetails() {
           </div>
         </div>
 
+        {loading && (
+          <p className="text-center text-gray-600 text-lg">
+            Caricamento opere...
+          </p>
+        )}
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 text-center">
             {error}

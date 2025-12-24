@@ -100,7 +100,8 @@ function AutoreDetails() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* HEADER AGGIORNATO CON TASTO MODIFICA */}
+        {/* HEADER */}
+
         <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
           <h1 className="text-3xl font-extrabold text-gray-900">
             {loading ? "Caricamento..." : `Autore: ${autoreName}`}
@@ -122,9 +123,20 @@ function AutoreDetails() {
           </div>
         </div>
 
+        {loading && (
+          <p className="text-center text-gray-600 text-lg">
+            Caricamento opere...
+          </p>
+        )}
+
         {error && (
           <p className="text-center text-red-600 font-semibold mb-4">{error}</p>
         )}
+
+        {/* TITOLO SEZIONE OPERE */}
+        <h2 className="text-xl font-bold text-gray-800 mb-6">
+          📚 Opere di questo autore ({opere.length})
+        </h2>
 
         {/* LISTA OPERE */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
