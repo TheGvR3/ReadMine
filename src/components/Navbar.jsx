@@ -14,21 +14,7 @@ function Navbar({ setUser, setError }) {
   // Icona del logo (SVG)
   // Estratta in un componente interno per pulizia e riutilizzo
   // ---------------------------------------------------------------------------
-  const LogoIcon = () => (
-    <svg
-      className="h-6 w-6 text-indigo-600 mr-2"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M12 6.253v13m0-13C10.832 5.414 9.382 5 7.91 5c-2.484 0-4.5 1.76-4.5 3.92C3.41 11.455 12 20 12 20s8.59-8.545 8.59-11.08c0-2.16-2.016-3.92-4.5-3.92-1.472 0-2.922.414-4.09 1.253z"
-      />
-    </svg>
-  );
+  
 
   // ---------------------------------------------------------------------------
   // Componente NavLink:
@@ -39,9 +25,9 @@ function Navbar({ setUser, setError }) {
   const NavLink = ({ to, children, isMobile = false }) => (
     <Link
       to={to}
-      onClick={() => setIsMenuOpen(false)} // chiude il menu mobile
+      onClick={() => setIsMenuOpen(false)}
       className={`
-        text-gray-600 hover:text-indigo-600 rounded-md font-medium transition duration-150 ease-in-out
+        text-gray-600 hover:text-blue-600 rounded-md font-medium transition duration-150 ease-in-out
         ${
           isMobile
             ? "block w-full text-left py-2 px-3 text-base hover:bg-gray-100"
@@ -58,25 +44,24 @@ function Navbar({ setUser, setError }) {
   // ---------------------------------------------------------------------------
   return (
     <nav className="bg-white shadow-lg sticky top-0 z-50">
-      {/* Contenitore principale */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Barra superiore */}
         <div className="flex justify-between items-center h-16">
-          {/* -------------------------------------------------------------------
-             LOGO + NOME BRAND
-          ------------------------------------------------------------------- */}
+          
+          {/* --- NUOVO LOGO READMINE --- */}
           <div className="flex items-center">
-            <Link to="/home" className="flex items-center">
-              <LogoIcon />
-              <h1 className="text-2xl font-extrabold text-gray-900 tracking-wide">
-                ReadMine
+            <Link to="/home" className="flex flex-col leading-none">
+              <h1 className="text-2xl font-black tracking-tighter">
+                <span className="text-blue-600">READ</span>
+                <span className="text-gray-800">MINE</span>
               </h1>
+              {/* Opzionale: un micro-testo sotto per richiamare lo stile login */}
+              <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">
+                Own your library
+              </span>
             </Link>
           </div>
 
-          {/* -------------------------------------------------------------------
-             NAVIGAZIONE DESKTOP (visibile solo da sm in su)
-          ------------------------------------------------------------------- */}
+          {/* NAVIGAZIONE DESKTOP */}
           <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
             <NavLink to="/home">Dashboard</NavLink>
             <NavLink to="/archivio">Archivio</NavLink>
@@ -84,11 +69,8 @@ function Navbar({ setUser, setError }) {
             <NavLink to="/profile">Profilo</NavLink>
           </div>
 
-          {/* -------------------------------------------------------------------
-             AREA DESTRA: Logout (desktop) + Hamburger (mobile)
-          ------------------------------------------------------------------- */}
+          {/* AREA DESTRA: Logout + Hamburger */}
           <div className="flex items-center">
-            {/* Logout visibile SOLO su desktop */}
             <div className="hidden sm:block">
               <Logout
                 setUser={setUser}
@@ -97,52 +79,19 @@ function Navbar({ setUser, setError }) {
               />
             </div>
 
-            {/* -----------------------------------------------------------------
-               Bottone hamburger (visibile SOLO su mobile)
-            ------------------------------------------------------------------ */}
+            {/* Bottone Hamburger Mobile */}
             <div className="sm:hidden">
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md 
-                           text-gray-400 hover:text-gray-500 hover:bg-gray-100 
-                           focus:outline-none focus:ring-2 focus:ring-inset 
-                           focus:ring-indigo-500 transition duration-150 ease-in-out"
-                aria-controls="mobile-menu"
-                aria-expanded={isMenuOpen}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition duration-150 ease-in-out"
               >
                 <span className="sr-only">Apri menu principale</span>
-
-                {/* Icona hamburger (mostrata quando il menu è chiuso) */}
-                <svg
-                  className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
+                <svg className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
-
-                {/* Icona X (mostrata quando il menu è aperto) */}
-                <svg
-                  className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -150,32 +99,15 @@ function Navbar({ setUser, setError }) {
         </div>
       </div>
 
-      {/* -----------------------------------------------------------------------
-         MENU MOBILE (visibile solo quando isMenuOpen === true)
-      ------------------------------------------------------------------------ */}
-      <div
-        className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`}
-        id="mobile-menu"
-      >
+      {/* MENU MOBILE */}
+      <div className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`} id="mobile-menu">
         <div className="pt-2 pb-3 space-y-1 border-t border-gray-100 bg-gray-50">
-          {/* Link di navigazione mobile */}
-          <NavLink to="/home" isMobile={true}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/archivio" isMobile={true}>
-            Archivio
-          </NavLink>
-          
-          <NavLink to="/profile" isMobile={true}>
-            Profilo
-          </NavLink>
-
-          {/* Logout mobile */}
+          <NavLink to="/home" isMobile={true}>Dashboard</NavLink>
+          <NavLink to="/archivio" isMobile={true}>Archivio</NavLink>
+          <NavLink to="/chat" isMobile={true}>Chat AI</NavLink>
+          <NavLink to="/profile" isMobile={true}>Profilo</NavLink>
           <div className="pt-4 px-4">
-            <Logout
-              setUser={setUser}
-              setError={setError}
-            />
+            <Logout setUser={setUser} setError={setError} />
           </div>
         </div>
       </div>
