@@ -167,7 +167,7 @@ function OperaDetail() {
                       <span key={autore.id || index}>
                         <Link
                           to={`/autore/${autore.id}`}
-                          className="text-indigo-600 hover:underline font-medium"
+                          className="text-black-600 hover:underline font-medium"
                         >
                           {autore.nome}
                         </Link>
