@@ -1,4 +1,4 @@
-import { useState , useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginService } from "../../services/auth/loginService";
 import { Link } from "react-router-dom";
@@ -49,7 +49,7 @@ function Login() {
       setError("L'username non può superare i 30 caratteri");
       setLoading(false);
       return;
-    }else if (/\s/.test(identifier)) {
+    } else if (/\s/.test(identifier)) {
       setError("L'username non può contenere spazi");
       setLoading(false);
       return;
@@ -59,11 +59,11 @@ function Login() {
       setError("La password deve avere almeno 6 caratteri");
       setLoading(false);
       return;
-    }else if (password.trim().length > 50) {
+    } else if (password.trim().length > 50) {
       setError("La password non può superare i 50 caratteri");
       setLoading(false);
       return;
-    }else if (/\s/.test(password)) {
+    } else if (/\s/.test(password)) {
       setError("La password non può contenere spazi");
       setLoading(false);
       return;
@@ -89,13 +89,21 @@ function Login() {
     }
   };
 
-
-  
   // ---------------------------------------------------------------------------
   // RENDER DELLA PAGINA DI LOGIN
   // ---------------------------------------------------------------------------
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 gap-8">
+      <div className="text-center mb-4 font-mono">
+        <div className="inline-block bg-gray-800 text-white px-4 py-2 rounded-md shadow-lg">
+          <span className="text-green-400">~/</span>
+          <span className="font-bold">READMINE</span>
+          <span className="animate-pulse text-blue-400">_</span>
+        </div>
+        <p className="text-gray-400 text-xs mt-2 italic">
+          Explore your own library
+        </p>
+      </div>
       {/* -----------------------------------------------------------------------
         BOX DEL FORM DI LOGIN
       ------------------------------------------------------------------------ */}

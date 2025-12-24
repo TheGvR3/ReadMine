@@ -126,12 +126,20 @@ function Register() {
     }
   };
 
-
   // ---------------------------------------------------------------------------
   // RENDER DELLA PAGINA DI REGISTRAZIONE
   // ---------------------------------------------------------------------------
   return (
     <div className="flex flex-col gap-8 justify-center items-center min-h-screen bg-gray-100">
+      <div className="text-center mb-2">
+        <h1 className="text-5xl font-extrabold tracking-tighter">
+          <span className="text-blue-600">READ</span>
+          <span className="text-gray-800">MINE</span>
+        </h1>
+        <p className="text-gray-500 text-sm mt-1 uppercase tracking-widest font-mono">
+          Explore your own library
+        </p>
+      </div>
       {/* -----------------------------------------------------------------------
         BOX FORM REGISTRAZIONE
       ------------------------------------------------------------------------ */}
