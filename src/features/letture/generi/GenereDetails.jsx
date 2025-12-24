@@ -27,7 +27,7 @@ function GenereDetails() {
         {},
         navigate
       );
-      
+
       if (resGenere && resGenere.ok) {
         const dataGenere = await resGenere.json();
         setGenereName(dataGenere.nome_genere);
@@ -101,12 +101,11 @@ function GenereDetails() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* HEADER */}
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900">
-              Genere: {loading ? "Caricamento..." : genereName}
-            </h1>
-          </div>
+
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+          <h1 className="text-3xl font-extrabold text-gray-900">
+            {loading ? "Caricamento..." : `Genere: ${genereName}`}
+          </h1>
 
           <div className="flex items-center gap-3">
             <button

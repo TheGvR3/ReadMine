@@ -123,6 +123,7 @@ function UpdateProfileData() {
             value={formData.email}
             onChange={handleChange}
             placeholder="Email"
+            required
             className="w-full p-2 border rounded"
           />
           <input

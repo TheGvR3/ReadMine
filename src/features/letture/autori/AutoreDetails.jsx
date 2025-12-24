@@ -111,7 +111,7 @@ function AutoreDetails() {
               onClick={handleUpdate}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-semibold shadow-sm"
             >
-              Modifica Nome
+              Modifica
             </button>
             <button
               onClick={handleDeleteAutore}

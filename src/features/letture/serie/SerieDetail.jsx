@@ -101,14 +101,13 @@ function SerieDetail() {
             Opere nella serie: {serieName}
           </h1>
 
-          <div className="flex space-x-2 shrink-0">
+          <div className="flex items-center gap-3">
             <button
               onClick={handleUpdate}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-semibold shadow-sm"
             >
               Modifica
             </button>
-
             <button
               onClick={handleDeleteSerie}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition font-semibold shadow-sm"
