@@ -14,6 +14,17 @@ import { refreshAccessToken } from "./refreshTokenRequest";
 export async function secureFetch(url, options = {}, navigate) {
   // 1. Recupero del token attuale dal localStorage
   let token = localStorage.getItem("accessToken");
+
+  // SE IL TOKEN MANCA COMPLETAMENTE (es. cancellato manualmente o prima volta)
+  if (!token) {
+    console.log("Token assente, provo il refresh silenzioso...");
+    token = await refreshAccessToken(); // Prova a recuperarlo dal cookie
+
+    if (!token) {
+      navigate("/login");
+      return null;
+    }
+  }
   try {
     // 2. Prima richiesta al server
     //    - Copiamo tutte le opzioni passate (method, headers, body, ecc.)
