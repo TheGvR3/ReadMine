@@ -112,7 +112,7 @@ function Login() {
           {/* Campo Username */}
           <div className="flex flex-col">
             <label htmlFor="identifier" className="text-sm font-semibold">
-              Username:
+              Username (Email):
             </label>
             <input
               type="text"

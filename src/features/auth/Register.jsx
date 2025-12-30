@@ -161,7 +161,11 @@ function Register() {
           </div>
           {/* Password */}
           <div className="flex flex-col">
-            <label htmlFor="password" className="text-sm font-semibold">
+            <label
+              htmlFor="password"
+              name="password"
+              className="text-sm font-semibold"
+            >
               Password:
             </label>
             <input
@@ -169,8 +173,15 @@ function Register() {
               id="password"
               name="password"
               required
+              pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+              title="La password deve contenere almeno 8 caratteri, una maiuscola, un numero e un carattere speciale."
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {/* Testo dei requisiti */}
+            <p className="mt-1 text-xs text-gray-500">
+              Minimo 8 caratteri: 1 maiuscola, 1 numero e 1 simbolo (es. @, $,
+              !).
+            </p>
           </div>
           {/* Altri campi opzionali */}
           {/* Nome */}
