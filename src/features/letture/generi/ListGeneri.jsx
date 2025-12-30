@@ -7,7 +7,9 @@ function ListGeneri() {
   const [generi, setGeneri] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("nome");
+
   // Stati Paginazione
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 28;
@@ -48,11 +50,29 @@ function ListGeneri() {
     loadGeneri();
   }, [navigate]);
 
-  // Logica Paginazione
+  /* ---------------------------------------------------------------------------
+   3. LOGICA DI FILTRO E ORDINAMENTO
+   ---------------------------------------------------------------------------
+*/
+  const filteredGeneri = generi.filter((g) => {
+    const nome = g.nome_genere ? g.nome_genere.toLowerCase() : "";
+    return nome.includes(searchTerm.toLowerCase());
+  });
+
+  const sortedGeneri = [...filteredGeneri].sort((a, b) => {
+    if (sortBy === "nome") {
+      return (a.nome_genere || "").localeCompare(b.nome_genere || "");
+    }
+    if (sortBy === "nome-desc") {
+      return (b.nome_genere || "").localeCompare(a.nome_genere || "");
+    }
+    return 0;
+  });
+
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentGeneri = generi.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(generi.length / itemsPerPage);
+  const currentGeneri = sortedGeneri.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedGeneri.length / itemsPerPage);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -106,10 +126,71 @@ function ListGeneri() {
           + Nuovo Genere
         </Link>
       </div>
-      {currentPage > 1 && generi.length > itemsPerPage && <PaginationControls />}
+      {currentPage > 1 && generi.length > itemsPerPage && (
+        <PaginationControls />
+      )}
+
+      {/* BARRA DEI FILTRI */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-end gap-4">
+          {/* Ricerca */}
+          <div className="flex-1 w-full relative">
+            <label className="block text-xs text-gray-400 mb-1 ml-1">
+              Cerca genere:
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-4 w-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Fantasy, Thriller, Saggistica..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm transition-all"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Ordinamento */}
+          <div className="w-full md:w-64">
+            <label className="block text-xs text-gray-400 mb-1 ml-1">
+              Ordina per:
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="block w-full py-2 px-4 border border-gray-200 bg-gray-50 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 text-sm appearance-none cursor-pointer"
+            >
+              <option value="nome">Nome (A-Z)</option>
+              <option value="nome-desc">Nome (Z-A)</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       <div className="container mx-auto px-4 py-6">
-        {loading && <p className="text-center text-gray-600">Caricamento in corso...</p>}
+        {loading && (
+          <p className="text-center text-gray-600">Caricamento in corso...</p>
+        )}
         {error && <p className="text-red-500 text-center">{error}</p>}
 
         {!loading && !error && generi.length > 0 && (
@@ -125,18 +206,26 @@ function ListGeneri() {
                       {genere.nome_genere}
                     </h2>
                   </Link>
-                  
-                  
                 </div>
               ))}
             </div>
 
-            {generi.length > itemsPerPage && <PaginationControls />}
+            {sortedGeneri.length > itemsPerPage && <PaginationControls />}
           </>
         )}
 
-        {!loading && generi.length === 0 && (
-          <p className="text-center text-xl text-gray-500 mt-8">Nessun genere presente in archivio.</p>
+        {!loading && sortedGeneri.length === 0 && (
+          <div className="text-center py-10">
+            <p className="text-xl text-gray-500">
+              Nessun genere trovato con questo nome.
+            </p>
+            <button
+              onClick={() => setSearchTerm("")}
+              className="text-blue-500 hover:underline mt-2"
+            >
+              Resetta ricerca
+            </button>
+          </div>
         )}
       </div>
     </div>
