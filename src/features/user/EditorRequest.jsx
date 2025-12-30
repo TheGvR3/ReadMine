@@ -15,20 +15,27 @@ function EditorRequests() {
 
   const fetchRequests = async () => {
     setError("");
-    // Utilizziamo l'endpoint corretto per la lista in sospeso
-    const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/users/editorrequestslist`,
-      { method: "GET" },
-      navigate
-    );
-    
-    if (response && response.ok) {
-      const data = await response.json();
-      setRequests(data);
-    } else {
-      setError("Impossibile caricare le richieste.");
+    setLoading(true); // Assicuriamoci che lo stato di loading sia attivo
+
+    try {
+      const response = await secureFetch(
+        `${import.meta.env.VITE_API_BASE_URL}/users/editorrequestslist`,
+        { method: "GET" },
+        navigate
+      );
+
+      if (response && response.ok) {
+        const data = await response.json();
+        // Verifichiamo che data sia effettivamente un array prima di settarlo
+        setRequests(Array.isArray(data) ? data : []);
+      } else {
+        setError("Errore nel caricamento dei dati dal server.");
+      }
+    } catch (err) {
+      setError("Errore di connessione.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleAction = async (requestId, status) => {
@@ -54,14 +61,15 @@ function EditorRequests() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar setError={setError} />
-      
+
       <div className="max-w-5xl mx-auto px-4 py-10">
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900">
             Gestione Richieste Editor
           </h1>
           <p className="text-gray-600 mt-2">
-            Approva o rifiuta le richieste degli utenti per ottenere i permessi di scrittura.
+            Approva o rifiuta le richieste degli utenti per ottenere i permessi
+            di scrittura.
           </p>
         </header>
 
@@ -73,14 +81,28 @@ function EditorRequests() {
 
         {loading ? (
           <div className="flex justify-center py-10">
-            <p className="text-gray-500 animate-pulse">Caricamento richieste...</p>
+            <p className="text-gray-500 animate-pulse">
+              Caricamento richieste...
+            </p>
           </div>
         ) : requests.length === 0 ? (
           <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-200 text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="mx-auto h-12 w-12 text-gray-300 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <p className="text-gray-500 text-lg">Ottimo lavoro! Non ci sono richieste in sospeso.</p>
+            <p className="text-gray-500 text-lg">
+              Ottimo lavoro! Non ci sono richieste in sospeso.
+            </p>
           </div>
         ) : (
           <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
@@ -103,7 +125,10 @@ function EditorRequests() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((req) => (
-                  <tr key={req.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={req.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {req.users?.nome} {req.users?.cognome}
                     </td>
