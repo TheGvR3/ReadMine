@@ -112,7 +112,7 @@ function UpdateLettura() {
 
     if (response && response.ok) {
       setSuccessMessage("Lettura aggiornata con successo!");
-      setTimeout(() => navigate("/listletture"), 1500);
+      setTimeout(() => navigate(`/letturadetail/${id_lettura}`), 1500);
     } else {
       const err = await response.json().catch(() => ({}));
       setError(err.error || "Errore durante l'aggiornamento.");

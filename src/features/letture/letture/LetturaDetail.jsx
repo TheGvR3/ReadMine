@@ -152,7 +152,7 @@ function LetturaDetail() {
                 </Link>
                 <p className="text-lg text-gray-600 font-medium italic mt-2">
                   Editore:{" "}
-                  <span className="text-indigo-600">
+                  <span className="text-blue-600">
                     {lettura.opere?.editore || "N/D"}
                   </span>
                 </p>
@@ -162,7 +162,7 @@ function LetturaDetail() {
               <div className="flex gap-3">
                 <button
                   onClick={() => navigate(`/updatelettura/${id_lettura}`)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold shadow-lg transition"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold shadow-lg transition"
                 >
                   Modifica
                 </button>

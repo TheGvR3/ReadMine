@@ -64,12 +64,12 @@ function ListLetture() {
         
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 text-center sm:text-left">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-indigo-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 tracking-tight">
             📖 Diario di Lettura
           </h1>
           <Link
             to="/createlettura"
-            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all text-center"
+            className="w-full sm:w-auto bg-blue-green hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all text-center"
           >
             + Aggiungi Opera
           </Link>
@@ -77,7 +77,7 @@ function ListLetture() {
 
         {loading && (
           <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         )}
 
@@ -90,7 +90,7 @@ function ListLetture() {
         {!loading && letture.length === 0 && !error && (
           <div className="text-center py-20 bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-200">
             <p className="text-gray-500 text-lg">Il tuo diario è ancora vuoto.</p>
-            <Link to="/createlettura" className="text-indigo-600 font-bold hover:underline mt-2 inline-block">
+            <Link to="/createlettura" className="text-green-600 font-bold hover:underline mt-2 inline-block">
               Registra la tua prima lettura
             </Link>
           </div>
@@ -100,11 +100,11 @@ function ListLetture() {
           <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-indigo-50 hidden md:table-header-group">
+                <thead className="bg-blue-50 hidden md:table-header-group">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">Opera</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">Stato</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">Progresso</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">Opera</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">Stato</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">Progresso</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -112,12 +112,12 @@ function ListLetture() {
                     <tr
                       key={l.id_lettura}
                       onClick={() => navigate(`/lettura/${l.id_lettura}`)}
-                      className="flex flex-col md:table-row hover:bg-indigo-50/50 transition-colors cursor-pointer group"
+                      className="flex flex-col md:table-row hover:bg-blue-50/50 transition-colors cursor-pointer group"
                     >
                       {/* OPERA */}
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors text-lg md:text-base">
+                          <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-lg md:text-base">
                             {l.opere?.titolo}
                           </span>
                           <span className="text-xs text-gray-500 uppercase tracking-wide">
