@@ -64,6 +64,7 @@ function Navbar({ setUser, setError }) {
           {/* NAVIGAZIONE DESKTOP */}
           <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
             <NavLink to="/home">Dashboard</NavLink>
+            <NavLink to="/listletture">Letture</NavLink>
             <NavLink to="/archivio">Archivio</NavLink>
             <NavLink to="/chat">Chat AI</NavLink>
             <NavLink to="/profile">Profilo</NavLink>
