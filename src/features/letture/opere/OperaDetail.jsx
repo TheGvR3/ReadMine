@@ -134,13 +134,27 @@ function OperaDetail() {
                 </h1>
 
                 <div className="flex space-x-2 shrink-0">
+                  {/* Cerca la sezione dei pulsanti (vicino a Modifica ed Elimina) e aggiungi questo:*/}
+                  <button
+                    onClick={() =>
+                      navigate("/createlettura", {
+                        state: {
+                          id_opera: id_opera,
+                          titolo: opera.titolo,
+                          editore: opera.editore,
+                        },
+                      })
+                    }
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition font-semibold shadow-sm"
+                  >
+                    + Diario
+                  </button>
                   <button
                     onClick={handleUpdate}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-semibold shadow-sm"
                   >
                     Modifica
                   </button>
-
                   <button
                     onClick={handleDelete}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition font-semibold shadow-sm"

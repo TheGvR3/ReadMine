@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AsyncSelect from "react-select/async";
+import { useNavigate, useLocation } from "react-router-dom"; 
 import Navbar from "../../../components/Navbar";
 import { secureFetch } from "../../../utils/secureFetch";
 
 function CreateLettura() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Recupera i dati passati tramite navigate (se esistono)
+  const preSelectedOpera = location.state;
 
   // Stato per l'ID utente recuperato dal token
   const [idUtente, setIdUtente] = useState(null);
 
   const [formData, setFormData] = useState({
-    id_opera: null,
+    id_opera: preSelectedOpera?.id_opera || null,
     data_lettura: new Date().toISOString().split("T")[0],
     volume: "",
     capitolo: "",
@@ -20,6 +25,13 @@ function CreateLettura() {
     valutazione: "",
     note: "",
   });
+
+  // Stato aggiuntivo per gestire il valore visualizzato in AsyncSelect
+  const [selectedOperaValue, setSelectedOperaValue] = useState(
+    preSelectedOpera 
+      ? { value: preSelectedOpera.id_opera, label: `${preSelectedOpera.titolo} (${preSelectedOpera.editore || "N/A"})` }
+      : null
+  );
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -76,6 +88,7 @@ function CreateLettura() {
   };
 
   const handleSelectOpera = (selectedOption) => {
+    setSelectedOperaValue(selectedOption); 
     setFormData((prev) => ({
       ...prev,
       id_opera: selectedOption ? selectedOption.value : null,
@@ -166,6 +179,7 @@ function CreateLettura() {
                 cacheOptions
                 loadOptions={loadOpereOptions}
                 onChange={handleSelectOpera}
+                value={selectedOperaValue}
                 placeholder="Esempio: Naruto, One Piece..."
                 isClearable
                 noOptionsMessage={() => "Nessuna opera trovata"}
