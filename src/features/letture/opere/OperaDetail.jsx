@@ -16,6 +16,7 @@ function OperaDetail() {
   const [opera, setOpera] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [user, setUser] = useState(null);
 
   // ---------------------------------------------------------------------------
   // 3. CARICAMENTO DATI
@@ -25,24 +26,41 @@ function OperaDetail() {
       setLoading(true);
       setError("");
 
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/opere/${id_opera}`,
-        { method: "GET" },
-        navigate
-      );
+      try {
+        // --- NUOVO: Recupera dati utente per permessi Editor ---
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          {},
+          navigate
+        );
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          setUser(userData);
+        }
 
-      if (!response) return;
+        // --- Caricamento Dettagli Opera ---
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/opere/${id_opera}`,
+          { method: "GET" },
+          navigate
+        );
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        setError(err.error || "Errore nel caricamento dell'opera");
+        if (!response) return;
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          setError(err.error || "Errore nel caricamento dell'opera");
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        setOpera(data);
+      } catch (err) {
+        setError("Errore tecnico durante il caricamento");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const data = await response.json();
-      setOpera(data);
-      setLoading(false);
     };
 
     if (id_opera) fetchOperaDetail();

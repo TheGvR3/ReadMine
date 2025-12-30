@@ -12,6 +12,7 @@ function GenereDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [genereName, setGenereName] = useState("");
+  const [user, setUser] = useState(null);
 
   // ---------------------------------------------------------------------------
   // CARICA DATI (OPERE E NOME GENERE)
@@ -21,42 +22,56 @@ function GenereDetails() {
       setLoading(true);
       setError("");
 
-      // 1. Carica Nome Genere
-      const resGenere = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/genere/${id_genere}`,
-        {},
-        navigate
-      );
-
-      if (resGenere && resGenere.ok) {
-        const dataGenere = await resGenere.json();
-        setGenereName(dataGenere.nome_genere);
-      } else {
-        setError("Impossibile trovare il genere selezionato.");
-        setLoading(false);
-        return;
-      }
-
-      // 2. Carica Opere filtrate per Genere
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/opere/genere/${id_genere}`,
-        {},
-        navigate
-      );
-
-      if (response) {
-        if (response.ok) {
-          const dataOpere = await response.json();
-          setOpere(dataOpere);
-        } else if (response.status === 404) {
-          // Genere esistente ma senza opere associate
-          setOpere([]);
-        } else {
-          setError("Errore tecnico durante il recupero delle opere.");
+      try {
+        // --- NUOVO: Recupera profilo utente per gestire i permessi ---
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          {},
+          navigate
+        );
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          setUser(userData);
         }
-      }
 
-      setLoading(false);
+        // 1. Carica Nome Genere
+        const resGenere = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/genere/${id_genere}`,
+          {},
+          navigate
+        );
+
+        if (resGenere && resGenere.ok) {
+          const dataGenere = await resGenere.json();
+          setGenereName(dataGenere.nome_genere);
+        } else {
+          setError("Impossibile trovare il genere selezionato.");
+          setLoading(false);
+          return;
+        }
+
+        // 2. Carica Opere filtrate per Genere
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/opere/genere/${id_genere}`,
+          {},
+          navigate
+        );
+
+        if (response) {
+          if (response.ok) {
+            const dataOpere = await response.json();
+            setOpere(dataOpere);
+          } else if (response.status === 404) {
+            setOpere([]);
+          } else {
+            setError("Errore tecnico durante il recupero delle opere.");
+          }
+        }
+      } catch (err) {
+        setError("Errore di connessione al server.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     if (id_genere) loadData();

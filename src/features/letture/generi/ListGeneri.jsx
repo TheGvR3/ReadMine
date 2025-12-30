@@ -9,6 +9,7 @@ function ListGeneri() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nome");
+  const [user, setUser] = useState(null);
 
   // Stati Paginazione
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,24 +28,39 @@ function ListGeneri() {
       setLoading(true);
       setError("");
 
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/genere/`, // Assicurati che l'endpoint sia corretto
-        { method: "GET" },
-        navigate
-      );
+      try {
+        // --- NUOVO: Recupera dati utente per permessi Editor ---
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          { method: "GET" },
+          navigate
+        );
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          setUser(userData);
+        }
 
-      if (!response) return;
+        // --- Caricamento Lista Generi ---
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/genere/`,
+          { method: "GET" },
+          navigate
+        );
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        setError(err.error || "Errore durante il caricamento dei generi.");
+        if (!response) return;
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          setError(err.error || "Errore durante il caricamento dei generi.");
+        } else {
+          const data = await response.json();
+          setGeneri(data);
+        }
+      } catch (err) {
+        setError("Errore di connessione.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const data = await response.json();
-      setGeneri(data);
-      setLoading(false);
     };
 
     loadGeneri();

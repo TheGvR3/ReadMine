@@ -37,24 +37,40 @@ function ListAutori() {
       setLoading(true);
       setError("");
 
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/autori`,
-        { method: "GET" },
-        navigate
-      );
+      try {
+        // --- NUOVO: Recupera profilo utente per gestire i permessi ---
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          { method: "GET" },
+          navigate
+        );
 
-      if (!response) return;
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          setUser(userData); // Popola lo stato per attivare il tasto "Nuovo Autore"
+        }
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        setError(err.error || "Errore durante il caricamento degli autori.");
+        // --- Caricamento Lista Autori ---
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/autori`,
+          { method: "GET" },
+          navigate
+        );
+
+        if (!response) return;
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          setError(err.error || "Errore durante il caricamento degli autori.");
+        } else {
+          const data = await response.json();
+          setAutori(data);
+        }
+      } catch (err) {
+        setError("Errore di connessione al server.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const data = await response.json();
-      setAutori(data);
-      setLoading(false);
     };
 
     loadAutori();
@@ -160,12 +176,12 @@ function ListAutori() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Lista Autori</h1>
         {user && user.editor === true && (
-        <Link
-          to="/createautore"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 transition duration-150"
-        >
-          + Nuovo Autore
-        </Link>
+          <Link
+            to="/createautore"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 transition duration-150"
+          >
+            + Nuovo Autore
+          </Link>
         )}
       </div>
 

@@ -12,6 +12,7 @@ function AutoreDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [autoreName, setAutoreName] = useState("");
+  const [user, setUser] = useState(null);
 
   // ---------------------------------------------------------------------------
   // CARICA DATI (OPERE E NOME AUTORE)
@@ -19,44 +20,56 @@ function AutoreDetails() {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      setError(""); // Resettiamo gli errori precedenti
+      setError("");
 
-      // 1. Carica Nome Autore (sempre prioritario)
-      const resAutore = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/autori/${id_autore}`,
-        {},
-        navigate
-      );
-      if (resAutore && resAutore.ok) {
-        const dataAutore = await resAutore.json();
-        setAutoreName(dataAutore.nome_autore);
-      } else {
-        setError("Impossibile trovare l'autore.");
-        setLoading(false);
-        return;
-      }
-
-      // 2. Carica Opere
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/opere/autore/${id_autore}`,
-        {},
-        navigate
-      );
-
-      if (response) {
-        if (response.ok) {
-          const dataOpere = await response.json();
-          setOpere(dataOpere);
-        } else if (response.status === 404) {
-          // Caso normale: l'autore esiste ma non ha ancora opere
-          setOpere([]);
-        } else {
-          // Errore reale di database/connessione
-          setError("Errore tecnico durante il caricamento della lista opere.");
+      try {
+        // --- NUOVO: Recupera Profilo Utente ---
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          {},
+          navigate
+        );
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          setUser(userData);
         }
-      }
 
-      setLoading(false);
+        // 1. Carica Nome Autore
+        const resAutore = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/autori/${id_autore}`,
+          {},
+          navigate
+        );
+
+        if (resAutore && resAutore.ok) {
+          const dataAutore = await resAutore.json();
+          setAutoreName(dataAutore.nome_autore);
+        } else {
+          setError("Impossibile trovare l'autore.");
+          setLoading(false);
+          return;
+        }
+
+        // 2. Carica Opere (Logica esistente...)
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/opere/autore/${id_autore}`,
+          {},
+          navigate
+        );
+
+        if (response) {
+          if (response.ok) {
+            const dataOpere = await response.json();
+            setOpere(dataOpere);
+          } else if (response.status === 404) {
+            setOpere([]);
+          }
+        }
+      } catch (err) {
+        setError("Errore durante il caricamento.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     if (id_autore) loadData();
@@ -97,7 +110,7 @@ function AutoreDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar setUser={setUser} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* HEADER */}

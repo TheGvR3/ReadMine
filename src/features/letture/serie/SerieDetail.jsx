@@ -7,7 +7,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 function SerieDetail() {
   const { id_serie } = useParams();
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [opere, setOpere] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -17,37 +17,49 @@ function SerieDetail() {
   // CARICA OPERE DELLA SERIE
   // ---------------------------------------------------------------------------
   useEffect(() => {
-    const loadOpere = async () => {
+    const loadData = async () => {
       setLoading(true);
+      setError("");
 
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/opere/serie/${id_serie}`,
-        {},
-        navigate
-      );
-
-      if (!response) return;
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          setOpere([]);
-          setLoading(false);
-          return;
+      try {
+        // 1. Recupera profilo utente per i permessi
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          {},
+          navigate
+        );
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          setUser(userData);
         }
 
-        const errData = await response.json().catch(() => ({}));
-        setError(errData.error || "Impossibile caricare le opere.");
-        setLoading(false);
-        return;
-      }
+        // 2. Carica le opere della serie
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/opere/serie/${id_serie}`,
+          {},
+          navigate
+        );
 
-      const data = await response.json();
-      setOpere(data);
-      setSerieName(data[0]?.serie || "");
-      setLoading(false);
+        if (response) {
+          if (response.ok) {
+            const data = await response.json();
+            setOpere(data);
+            setSerieName(data[0]?.serie || "");
+          } else if (response.status === 404) {
+            setOpere([]);
+            // Se 404, potresti voler fare un'altra fetch per il solo nome della serie
+          } else {
+            setError("Impossibile caricare le opere.");
+          }
+        }
+      } catch (err) {
+        setError("Errore tecnico durante il caricamento.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (id_serie) loadOpere();
+    if (id_serie) loadData();
   }, [id_serie, navigate]);
 
   // Naviga alla pagina di modifica
