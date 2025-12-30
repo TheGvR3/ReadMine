@@ -31,6 +31,7 @@ import CreateGenere from "./features/letture/generi/CreateGenere";
 import UpdateGenere from "./features/letture/generi/UpdateGenere";
 //Letture - Letture
 import ListLetture from "./features/letture/letture/ListLetture";
+import LetturaDetail from "./features/letture/letture/LetturaDetail";
 import CreateLettura from "./features/letture/letture/CreateLettura";
 import UpdateLettura from "./features/letture/letture/UpdateLettura";
 
@@ -38,6 +39,7 @@ import UpdateLettura from "./features/letture/letture/UpdateLettura";
 import Home from "./features/Home";
 import Archivio from "./features/Archivio";
 import ChatPage from "./features/ChatPage";
+import LetturaDetail from "./features/letture/letture/LetturaDetail";
 
 function App() {
   return (
@@ -78,6 +80,7 @@ function App() {
         <Route path="/updatepassword" element={<UpdatePassword />} />
         {/* Rotte per le letture */}
         <Route path="/listletture" element={<ListLetture />} />
+        <Route path="/lettura/:id_lettura" element={<LetturaDetail />} />
         <Route path="/createlettura" element={<CreateLettura />} />
         <Route path="/updatelettura/:id_lettura" element={<UpdateLettura />} />
 
