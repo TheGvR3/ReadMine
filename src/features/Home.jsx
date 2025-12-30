@@ -39,6 +39,7 @@ function Home() {
         let currentUserId = null;
         if (resUser && resUser.ok) {
           const userData = await resUser.json();
+          setUser(userData);
           currentUserId = userData.id || userData.id_utente;
         }
 
