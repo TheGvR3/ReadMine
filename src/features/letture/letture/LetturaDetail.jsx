@@ -57,7 +57,7 @@ function LetturaDetail() {
   const handleDelete = async () => {
     if (!window.confirm("Rimuovere questa lettura dal tuo diario?")) return;
     const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/letture/${id_lettura}`,
+      `${import.meta.env.VITE_API_BASE_URL}/letture/lettura/${id_lettura}`,
       { method: "DELETE" },
       navigate
     );
