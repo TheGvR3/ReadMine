@@ -28,23 +28,27 @@ function CreateLettura() {
   // 1. RECUPERO ID UTENTE DAL PROFILO (usando il token)
   useEffect(() => {
     const fetchUserId = async () => {
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
-        { method: "GET" },
-        navigate
-      );
-
-      if (response && response.ok) {
-        const data = await response.json();
-        // Adatta 'id_utente' o 'id' in base a come risponde il tuo server
-        setIdUtente(data.id_utente || data.id);
-      } else {
-        setError(
-          "Sessione scaduta o utente non trovato. Effettua nuovamente il login."
+      try {
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          { method: "GET" },
+          navigate
         );
+
+        if (response && response.ok) {
+          const data = await response.json();
+          console.log("Dati profilo ricevuti:", data);
+          const finalId = data.id || data.id_utente;
+          if (finalId) {
+            setIdUtente(finalId);
+          } else {
+            setError("ID utente non trovato nella risposta del server.");
+          }
+        }
+      } catch (err) {
+        setError("Errore durante il recupero dell'utente.");
       }
     };
-
     fetchUserId();
   }, [navigate]);
 
