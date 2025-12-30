@@ -110,30 +110,30 @@ function Home() {
           </p>
         </div>
 
-        {/* BOX INVITO EDITOR (Solo se l'utente non è già editor) */}
-        {user && !user.editor && (
-          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-            <div className="text-left">
-              <h3 className="text-xl font-bold text-indigo-900 mb-1">
-                🚀 Aiutaci a far crescere il progetto!
-              </h3>
-              <p className="text-indigo-700">
-                Non trovi l'opera che cerchi? Diventa un <strong>Editor</strong>{" "}
-                per avere i permessi di
-                <span className="text-green-700"> inserire</span>,
-                <span style={{ color: "blue" }}> modificare</span> o
-                <span className="text-red-700"> eliminare</span> opere, serie,
-                generi e autori.
-              </p>
-            </div>
-            <button
-              onClick={() => navigate("/profile")}
-              className="shrink-0 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-            >
-              Fai la richiesta nel Profilo
-            </button>
+        {/* BOX INVITO EDITOR */}
+
+        <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+          <div className="text-left">
+            <h3 className="text-xl font-bold text-indigo-900 mb-1">
+              🚀 Aiutaci a far crescere il progetto!
+            </h3>
+            <p className="text-indigo-700">
+              Non trovi l'opera che cerchi? Diventa un <strong>Editor</strong>{" "}
+              per avere i permessi di
+              <span className="text-green-700"> inserire</span>,
+              <span style={{ color: "blue" }}> modificare</span> o
+              <span className="text-red-700"> eliminare</span> opere, serie,
+              generi e autori.
+            </p>
           </div>
-        )}
+          <button
+            onClick={() => navigate("/profile")}
+            className="shrink-0 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+          >
+            Fai la richiesta nel Profilo
+          </button>
+        </div>
+
         {loading && (
           <p className="text-center text-lg text-gray-600">
             Caricamento in corso...
