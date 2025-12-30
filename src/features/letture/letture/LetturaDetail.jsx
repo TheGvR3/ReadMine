@@ -18,7 +18,7 @@ function LetturaDetail() {
       try {
         // NOTA: Verifica se l'URL del backend è /letture/ o /letture/dettaglio/
         const response = await secureFetch(
-          `${import.meta.env.VITE_API_BASE_URL}/letture/dettaglio/${id_lettura}`,
+          `${import.meta.env.VITE_API_BASE_URL}/letture/${id_lettura}`,
           { method: "GET" },
           navigate
         );
