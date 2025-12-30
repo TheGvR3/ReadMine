@@ -190,7 +190,7 @@ function LetturaDetail() {
               </div>
               <div className="p-5 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
                 <p className="text-xs font-bold text-gray-400 uppercase mb-1">
-                  Ultimo aggiornamento
+                  Letto il:
                 </p>
                 <p className="text-2xl font-bold text-gray-800">
                   {lettura.data_lettura
