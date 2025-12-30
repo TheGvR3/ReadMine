@@ -23,8 +23,8 @@ function UpdateLettura() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Determiniamo se l'opera è un libro (id_tipo 1)
-  const isLibro = obraInfo?.id_tipo === 1;
+  // Definiamo isLibro controllando bene l'oggetto obraInfo
+  const isLibro = obraInfo?.id_tipo === 1 || obraInfo?.tipo === "Libro";
 
   useEffect(() => {
     const fetchLettura = async () => {
