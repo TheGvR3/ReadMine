@@ -17,7 +17,7 @@ function EditorRequests() {
     setError("");
     // Utilizziamo l'endpoint corretto per la lista in sospeso
     const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/users/pending-editor-requests`,
+      `${import.meta.env.VITE_API_BASE_URL}/users/editorrequestslist`,
       { method: "GET" },
       navigate
     );
