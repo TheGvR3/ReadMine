@@ -266,6 +266,7 @@ function ListOpere() {
               <option value="Libro">Libri</option>
               <option value="Manga/Fumetto">Manga & Fumetti</option>
               <option value="Rivista">Riviste</option>
+              <option value="Altro">Altro</option>
             </select>
           </div>
         </div>
