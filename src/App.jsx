@@ -39,7 +39,6 @@ import UpdateLettura from "./features/letture/letture/UpdateLettura";
 import Home from "./features/Home";
 import Archivio from "./features/Archivio";
 import ChatPage from "./features/ChatPage";
-import LetturaDetail from "./features/letture/letture/LetturaDetail";
 
 function App() {
   return (
