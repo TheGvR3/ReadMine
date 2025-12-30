@@ -7,15 +7,17 @@ import { secureFetch } from "../utils/secureFetch";
 function Home() {
   const navigate = useNavigate();
 
-  // Stati locali per le tre categorie
+  // Stati per i dati generali
   const [books, setBooks] = useState([]);
-  const [autori, setAutori] = useState([]); 
-  const [serie, setSerie] = useState([]); 
+  const [autori, setAutori] = useState([]);
+  const [serie, setSerie] = useState([]);
+
+  // Stato per le ultime letture personali
+  const [ultimeLetture, setUltimeLetture] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Funzione per ottenere N elementi casuali da un array
   const getRandomElements = (array, n) => {
     return [...array].sort(() => 0.5 - Math.random()).slice(0, n);
   };
@@ -26,25 +28,60 @@ function Home() {
       setError("");
 
       try {
-        // Eseguiamo le chiamate in parallelo per efficienza
-        const [resOpere, resAutori, resSerie] = await Promise.all([
-          secureFetch(`${import.meta.env.VITE_API_BASE_URL}/opere`, {}, navigate),
-          secureFetch(`${import.meta.env.VITE_API_BASE_URL}/autori`, {}, navigate),
-          secureFetch(`${import.meta.env.VITE_API_BASE_URL}/serie`, {}, navigate),
-        ]);
+        // 1. Recupero Profilo Utente per ottenere l'ID
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          { method: "GET" },
+          navigate
+        );
 
-        if (!resOpere || !resAutori || !resSerie) return;
+        let currentUserId = null;
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          currentUserId = userData.id || userData.id_utente;
+        }
 
-        if (resOpere.ok && resAutori.ok && resSerie.ok) {
-          const dataOpere = await resOpere.json();
-          const dataAutori = await resAutori.json();
-          const dataSerie = await resSerie.json();
+        // 2. Chiamate parallele (Opere, Autori, Serie + Letture se abbiamo l'ID)
+        const fetchPromises = [
+          secureFetch(
+            `${import.meta.env.VITE_API_BASE_URL}/opere`,
+            {},
+            navigate
+          ),
+          secureFetch(
+            `${import.meta.env.VITE_API_BASE_URL}/autori`,
+            {},
+            navigate
+          ),
+          secureFetch(
+            `${import.meta.env.VITE_API_BASE_URL}/serie`,
+            {},
+            navigate
+          ),
+        ];
 
-          setBooks(dataOpere);
-          setAutori(dataAutori);
-          setSerie(dataSerie);
-        } else {
-          setError("Errore nel caricamento di alcune sezioni.");
+        if (currentUserId) {
+          fetchPromises.push(
+            secureFetch(
+              `${import.meta.env.VITE_API_BASE_URL}/letture/${currentUserId}`,
+              {},
+              navigate
+            )
+          );
+        }
+
+        const responses = await Promise.all(fetchPromises);
+
+        // Assegnazione dati generali
+        if (responses[0]?.ok) setBooks(await responses[0].json());
+        if (responses[1]?.ok) setAutori(await responses[1].json());
+        if (responses[2]?.ok) setSerie(await responses[2].json());
+
+        // Assegnazione Ultime Letture (Ultime 5)
+        if (currentUserId && responses[3]?.ok) {
+          const dataLetture = await responses[3].json();
+          // Prendiamo le ultime 5 (assumendo che l'API le restituisca dalla più recente o ordinandole noi)
+          setUltimeLetture(dataLetture.slice(0, 5));
         }
       } catch (err) {
         setError("Errore di connessione al server.");
@@ -80,6 +117,40 @@ function Home() {
           <div className="text-center text-red-600 font-medium my-6">
             {error}
           </div>
+        )}
+
+        {/* ---LE MIE ULTIME LETTURE --- */}
+        {!loading && ultimeLetture.length > 0 && (
+          <section className="mb-12 bg-indigo-900 p-6 rounded-2xl shadow-lg text-white">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                📖 Le Mie Ultime Letture
+              </h2>
+              <Link to="/listletture" className="text-sm bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full transition-colors">
+                Vai al diario
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              {ultimeLetture.map((l) => (
+                <Link 
+                  key={l.id_lettura} 
+                  to={`/lettura/${l.id_lettura}`}
+                  className="bg-white/10 hover:bg-white/20 p-4 rounded-xl border border-white/10 transition-all"
+                >
+                  <p className="font-bold truncate text-sm">{l.opere?.titolo}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-[10px] uppercase font-bold text-indigo-200">
+                      {l.stato.replace("_", " ")}
+                    </span>
+                    <span className="text-[10px] text-gray-300">
+                      {l.capitolo ? `Cap. ${l.capitolo}` : `Vol. ${l.volume || '-'}`}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* --- SEZIONE SCOPRI OPERE (RANDOM) --- */}
