@@ -8,6 +8,7 @@ function Home() {
   const navigate = useNavigate();
 
   // Stati per i dati generali
+  const [user, setUser] = useState(null);
   const [books, setBooks] = useState([]);
   const [autori, setAutori] = useState([]);
   const [serie, setSerie] = useState([]);
