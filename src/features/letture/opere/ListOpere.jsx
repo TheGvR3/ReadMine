@@ -313,7 +313,7 @@ function ListOpere() {
             >
               <option value="titolo">Titolo (A-Z)</option>
               <option value="autore">Autore (A-Z)</option>
-              <option value="serie">Serie</option>
+              <option value="serie">Serie (A-Z)</option>
               <option value="anno+">Anno (Più recenti)</option>
               <option value="anno-">Anno (Meno recenti)</option>
             </select>
