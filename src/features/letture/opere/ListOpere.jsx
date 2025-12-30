@@ -131,9 +131,13 @@ function ListOpere() {
       const serieB = b.serie || "zzz";
       return serieA.localeCompare(serieB);
     }
-    if (sortBy === "anno") {
+    if (sortBy === "anno+") {
       // Ordine decrescente (dal più recente)
       return (b.anno_pubblicazione || 0) - (a.anno_pubblicazione || 0);
+    }
+    if (sortBy === "anno-") {
+      // Ordine crescente (dal più piccolo)
+      return (a.anno_pubblicazione || 0) - (b.anno_pubblicazione || 0);
     }
     return 0;
   });
@@ -310,7 +314,8 @@ function ListOpere() {
               <option value="titolo">Titolo (A-Z)</option>
               <option value="autore">Autore (A-Z)</option>
               <option value="serie">Serie</option>
-              <option value="anno">Anno (Più recenti)</option>
+              <option value="anno+">Anno (Più recenti)</option>
+              <option value="anno-">Anno (Meno recenti)</option>
             </select>
           </div>
         </div>
