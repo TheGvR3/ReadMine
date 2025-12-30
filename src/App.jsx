@@ -15,6 +15,7 @@ import RegisterPage from "./features/auth/Register";
 import UserProfilePage from "./features/user/UserProfile";
 import UpdateProfile from "./features/user/UpdateProfile";
 import UpdatePassword from "./features/user/UpdatePassword";
+import EditorRequest from "./features/user/EditorRequest";
 // Letture - Opere
 import ListOperePage from "./features/letture/opere/ListOpere";
 import OperaDetail from "./features/letture/opere/OperaDetail";
@@ -85,6 +86,8 @@ function App() {
         <Route path="/profile" element={<UserProfilePage />} />
         <Route path="/updateprofile" element={<UpdateProfile />} />
         <Route path="/updatepassword" element={<UpdatePassword />} />
+        <Route path="/editorrequests" element={<EditorRequest />} />
+
         {/* Rotte per le letture */}
         <Route path="/listletture" element={<ListLetture />} />
         <Route path="/listletture/:categoria" element={<ListLetture />} />
