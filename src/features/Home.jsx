@@ -5,7 +5,6 @@ import Book from "../components/Book";
 import { secureFetch } from "../utils/secureFetch";
 
 function Home() {
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   // Stati per i dati generali
@@ -98,7 +97,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar setUser={setUser} setError={setError} />
+      <Navbar setError={setError} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intestazione */}
