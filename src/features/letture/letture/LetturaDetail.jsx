@@ -15,7 +15,6 @@ function LetturaDetail() {
     const fetchLetturaDetail = async () => {
       setLoading(true);
       try {
-        // Assicurati che questo URL sia ESATTAMENTE quello che hai testato e funziona
         const response = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/letture/lettura/${id_lettura}`,
           { method: "GET" },
@@ -27,7 +26,6 @@ function LetturaDetail() {
         }
 
         const data = await response.json();
-        console.log("Dati nel componente:", data); // Verifica in console se vedi l'oggetto
         setLettura(data);
       } catch (err) {
         setError(err.message);
@@ -39,7 +37,35 @@ function LetturaDetail() {
     if (id_lettura) fetchLetturaDetail();
   }, [id_lettura, navigate]);
 
-  // Gestione dinamica degli stili (senza crash se lettura è null)
+  // --- LOGICA DI ELIMINAZIONE ---
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(
+      "Sei sicuro di voler eliminare questa lettura dal tuo diario? L'azione è irreversibile."
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const response = await secureFetch(
+        `${import.meta.env.VITE_API_BASE_URL}/letture/${id_lettura}`,
+        { method: "DELETE" },
+        navigate
+      );
+
+      if (!response) return;
+
+      if (response.ok) {
+        alert("Lettura eliminata con successo.");
+        navigate("/listletture"); // Torna alla lista
+      } else {
+        const err = await response.json().catch(() => ({}));
+        setError(err.error || "Errore durante l'eliminazione.");
+      }
+    } catch (err) {
+      setError("Si è verificato un errore durante l'eliminazione.");
+    }
+  };
+
   const getStatusStyles = (stato) => {
     const defaultStyle = { text: "text-blue-600", border: "border-blue-600", bg: "bg-blue-50" };
     if (!stato) return defaultStyle;
@@ -72,7 +98,6 @@ function LetturaDetail() {
     </div>
   );
 
-  // Se arriviamo qui e lettura è ancora null, non renderizziamo nulla che possa crashare
   if (!lettura) return null;
 
   return (
@@ -82,11 +107,10 @@ function LetturaDetail() {
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className={`bg-white rounded-xl shadow-2xl overflow-hidden border-t-8 ${styles.border}`}>
           
-          {/* HEADER SEZIONE OPERA */}
           <div className={`${styles.bg} p-8 border-b border-gray-100`}>
             <div className="flex flex-col md:flex-row justify-between items-start gap-6">
               <div className="flex-1">
-                <span className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Dettaglio Opera</span>
+                <span className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Dettaglio Lettura</span>
                 <h1 className="text-4xl font-black text-gray-900 mt-1 uppercase">
                   {lettura.opere?.titolo || "Titolo mancante"}
                 </h1>
@@ -95,6 +119,7 @@ function LetturaDetail() {
                 </p>
               </div>
 
+              {/* PULSANTI AZIONE */}
               <div className="flex gap-3">
                 <button 
                   onClick={() => navigate(`/updatelettura/${id_lettura}`)}
@@ -102,11 +127,16 @@ function LetturaDetail() {
                 >
                   Modifica
                 </button>
+                <button 
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-bold shadow-lg transition"
+                >
+                  Rimuovi
+                </button>
               </div>
             </div>
           </div>
 
-          {/* GRIGLIA INFO */}
           <div className="p-8 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="p-5 rounded-2xl bg-gray-50 border border-gray-100 shadow-inner">
@@ -123,7 +153,6 @@ function LetturaDetail() {
               </div>
             </div>
 
-            {/* PROGRESSO FISICO */}
             <div className="bg-indigo-900 rounded-3xl p-8 text-white flex justify-around items-center shadow-xl">
               <div className="text-center">
                 <p className="text-indigo-300 text-xs font-bold uppercase mb-1">Volume</p>
@@ -141,7 +170,6 @@ function LetturaDetail() {
               </div>
             </div>
 
-            {/* VALUTAZIONE E NOTE */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">La mia valutazione</h3>
@@ -159,7 +187,6 @@ function LetturaDetail() {
           </div>
         </div>
 
-        {/* FOOTER NAV */}
         <div className="mt-12 text-center">
           <Link to="/listletture" className="text-indigo-600 font-bold hover:underline flex items-center justify-center gap-2">
             ← Torna alla lista completa
