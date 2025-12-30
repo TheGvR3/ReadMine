@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../../components/Navbar";
 import { secureFetch } from "../../../utils/secureFetch";
@@ -23,49 +22,62 @@ function UpdateLettura() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Controllo robusto del tipo opera
+  // Controllo robusto basato sul tipo opera
   const isLibro = obraInfo?.id_tipo === 1 || obraInfo?.tipo === "Libro";
 
   useEffect(() => {
-    const fetchLettura = async () => {
+    const fetchLetturaEOpera = async () => {
       setDataLoading(true);
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/letture/lettura/${id_lettura}`,
-        { method: "GET" },
-        navigate
-      );
+      try {
+        const resLettura = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/letture/lettura/${id_lettura}`,
+          { method: "GET" },
+          navigate
+        );
 
-      if (response && response.ok) {
-        const data = await response.json();
-        const opera = data.opere;
+        if (resLettura && resLettura.ok) {
+          const letturaData = await resLettura.json();
+          const idOpera = letturaData.id_opera || letturaData.opere?.id_opera;
+          
+          if (idOpera) {
+            const resOpera = await secureFetch(
+              `${import.meta.env.VITE_API_BASE_URL}/opere/${idOpera}`,
+              { method: "GET" },
+              navigate
+            );
+            
+            if (resOpera && resOpera.ok) {
+              const detailedOpera = await resOpera.json();
+              setObraInfo(detailedOpera);
 
-        setObraInfo(opera);
-
-        // Identifichiamo subito se è un libro per pulire il volume nel form
-        const checkIsLibro = opera?.id_tipo === 1 || opera?.tipo === "Libro";
-
-        setFormData({
-          data_lettura: data.data_lettura || "",
-          volume: checkIsLibro ? "" : data.volume ?? "",
-          capitolo: data.capitolo ?? "",
-          pagina: data.pagina ?? "",
-          stato: data.stato || "da_iniziare",
-          valutazione: data.valutazione ?? "",
-          note: data.note || "",
-        });
-      } else {
-        setError("Impossibile recuperare i dati della lettura.");
+              const checkIsLibro = detailedOpera.id_tipo === 1;
+              
+              setFormData({
+                data_lettura: letturaData.data_lettura || "",
+                volume: checkIsLibro ? "" : (letturaData.volume ?? ""),
+                capitolo: letturaData.capitolo ?? "",
+                pagina: letturaData.pagina ?? "",
+                stato: letturaData.stato || "da_iniziare",
+                valutazione: letturaData.valutazione ?? "",
+                note: letturaData.note || "",
+              });
+            }
+          }
+        } else {
+          setError("Impossibile recuperare i dati della lettura.");
+        }
+      } catch (err) {
+        setError("Errore durante il caricamento.");
+      } finally {
+        setDataLoading(false);
       }
-      setDataLoading(false);
     };
 
-    if (id_lettura) fetchLettura();
+    if (id_lettura) fetchLetturaEOpera();
   }, [id_lettura, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // BLOCCO SICUREZZA: Impedisce modifiche al volume se è un libro
     if (isLibro && name === "volume") return;
 
     setFormData((prev) => {
@@ -87,25 +99,13 @@ function UpdateLettura() {
 
     const dataToSend = {
       data_lettura: formData.data_lettura || null,
-      volume:
-        isActuallyDaIniziare || isLibro
-          ? null
-          : formData.volume !== ""
-          ? parseInt(formData.volume, 10)
-          : null,
-      capitolo: isActuallyDaIniziare
+      volume: (isActuallyDaIniziare || isLibro)
         ? null
-        : formData.capitolo !== ""
-        ? parseInt(formData.capitolo, 10)
-        : null,
-      pagina: isActuallyDaIniziare
-        ? null
-        : formData.pagina !== ""
-        ? parseInt(formData.pagina, 10)
-        : null,
+        : formData.volume !== "" ? parseInt(formData.volume, 10) : null,
+      capitolo: isActuallyDaIniziare ? null : formData.capitolo !== "" ? parseInt(formData.capitolo, 10) : null,
+      pagina: isActuallyDaIniziare ? null : formData.pagina !== "" ? parseInt(formData.pagina, 10) : null,
       stato: formData.stato || null,
-      valutazione:
-        formData.valutazione !== "" ? parseInt(formData.valutazione, 10) : null,
+      valutazione: formData.valutazione !== "" ? parseInt(formData.valutazione, 10) : null,
       note: formData.note || null,
     };
 
@@ -129,10 +129,7 @@ function UpdateLettura() {
     setLoading(false);
   };
 
-  if (dataLoading)
-    return (
-      <div className="text-center mt-10 text-gray-500">Caricamento dati...</div>
-    );
+  if (dataLoading) return <div className="text-center mt-10 text-gray-500 italic">Caricamento in corso...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,30 +143,20 @@ function UpdateLettura() {
             <p className="text-center text-blue-600 font-medium mb-6 flex items-center justify-center gap-2">
               {obraInfo.titolo}
               {isLibro && (
-                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                   Libro
                 </span>
               )}
             </p>
           )}
 
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">
-              {error}
-            </div>
-          )}
-          {successMessage && (
-            <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">
-              {successMessage}
-            </div>
-          )}
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">{error}</div>}
+          {successMessage && <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">{successMessage}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Stato
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Stato</label>
                 <select
                   name="stato"
                   value={formData.stato}
@@ -183,9 +170,7 @@ function UpdateLettura() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Data
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Data</label>
                 <input
                   type="date"
                   name="data_lettura"
@@ -196,26 +181,15 @@ function UpdateLettura() {
               </div>
             </div>
 
-            {/* PROGRESSO */}
             <div className="grid grid-cols-3 gap-4">
               {["volume", "capitolo", "pagina"].map((field) => {
                 const isFieldVolume = field === "volume";
-                const isDisabled =
-                  formData.stato === "da_iniziare" ||
-                  (isLibro && isFieldVolume);
+                const isDisabled = formData.stato === "da_iniziare" || (isLibro && isFieldVolume);
 
                 return (
                   <div key={field}>
-                    <label
-                      className={`block text-xs font-bold uppercase ${
-                        isDisabled ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    >
-                      {field === "volume"
-                        ? "Vol."
-                        : field === "capitolo"
-                        ? "Cap."
-                        : "Pag."}
+                    <label className={`block text-xs font-bold uppercase ${isDisabled ? "text-gray-400" : "text-gray-500"}`}>
+                      {field === "volume" ? "Vol." : field === "capitolo" ? "Cap." : "Pag."}
                     </label>
                     <input
                       type="number"
@@ -237,9 +211,7 @@ function UpdateLettura() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Valutazione
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Valutazione</label>
               <select
                 name="valutazione"
                 value={formData.valutazione}
@@ -247,18 +219,12 @@ function UpdateLettura() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Nessun voto</option>
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    {n} ⭐
-                  </option>
-                ))}
+                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} ⭐</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Note
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Note</label>
               <textarea
                 name="note"
                 value={formData.note}
@@ -272,11 +238,10 @@ function UpdateLettura() {
               <button
                 type="button"
                 onClick={() => navigate("/listletture")}
-                className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold"
+                className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors"
               >
                 Annulla
               </button>
-              {/* MODIFICA = BLU */}
               <button
                 type="submit"
                 disabled={loading}
