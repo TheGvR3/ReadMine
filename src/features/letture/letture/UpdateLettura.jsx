@@ -29,7 +29,7 @@ function UpdateLettura() {
     const fetchLettura = async () => {
       setDataLoading(true);
       const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/letture/${id_lettura}`,
+        `${import.meta.env.VITE_API_BASE_URL}/letture/lettura/${id_lettura}`,
         { method: "GET" },
         navigate
       );
