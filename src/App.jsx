@@ -29,6 +29,11 @@ import ListGeneri from "./features/letture/generi/ListGeneri";
 import GenereDetails from "./features/letture/generi/GenereDetails";
 import CreateGenere from "./features/letture/generi/CreateGenere";
 import UpdateGenere from "./features/letture/generi/UpdateGenere";
+//Letture - Letture
+import ListLetture from "./features/letture/letture/ListLetture";
+import CreateLettura from "./features/letture/letture/CreateLettura";
+import UpdateLettura from "./features/letture/letture/UpdateLettura";
+
 // Home Page
 import Home from "./features/Home";
 import Archivio from "./features/Archivio";
@@ -71,6 +76,10 @@ function App() {
         <Route path="/profile" element={<UserProfilePage />} />
         <Route path="/updateprofile" element={<UpdateProfile />} />
         <Route path="/updatepassword" element={<UpdatePassword />} />
+        {/* Rotte per le letture */}
+        <Route path="/listletture" element={<ListLetture />} />
+        <Route path="/createlettura" element={<CreateLettura />} />
+        <Route path="/updatelettura/:id_lettura" element={<UpdateLettura />} />
 
 
         {/* Rotte per le opere */}
