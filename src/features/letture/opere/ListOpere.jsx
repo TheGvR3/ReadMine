@@ -148,28 +148,60 @@ function ListOpere() {
       </div>
 
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-        {loading && <p className="text-center text-lg text-gray-700">Caricamento in corso...</p>}
-        {error && <p className="text-center text-xl text-red-600 font-medium my-4">{error}</p>}
+        {loading && (
+          <p className="text-center text-lg text-gray-700">
+            Caricamento in corso...
+          </p>
+        )}
+        {error && (
+          <p className="text-center text-xl text-red-600 font-medium my-4">
+            {error}
+          </p>
+        )}
 
         {!loading && !error && books.length > 0 && (
           <>
             {/* Paginazione superiore */}
-            {currentPage > 1 && books.length > itemsPerPage && <PaginationControls />}
+            {currentPage > 1 && books.length > itemsPerPage && (
+              <PaginationControls />
+            )}
 
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {currentBooks.map((book) => (
-                <Link key={book.id_opera} to={`/opere/${book.id_opera}`}>
-                  <Book
-                    title={book.titolo}
-                    editore={book.editore}
-                    author={book.autori}
-                    anno={book.anno_pubblicazione}
-                    stato_opera={book.stato_opera}
-                    generi={book.generi}
-                    tipo={book.tipo}
-                    serie={book.serie}
-                  />
-                </Link>
+                <div key={book.id_opera} className="relative group">
+                  {/* Link principale alla card */}
+                  <Link to={`/opere/${book.id_opera}`}>
+                    <Book
+                      title={book.titolo}
+                      editore={book.editore}
+                      author={book.autori}
+                      anno={book.anno_pubblicazione}
+                      stato_opera={book.stato_opera}
+                      generi={book.generi}
+                      tipo={book.tipo}
+                      serie={book.serie}
+                    />
+                  </Link>
+
+                  {/* Pulsante "+" rapido per creare la lettura */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault(); // Impedisce al Link di attivarsi
+                      e.stopPropagation(); // Impedisce l'evento di bubbling
+                      navigate("/createlettura", {
+                        state: {
+                          id_opera: book.id_opera,
+                          titolo: book.titolo,
+                          editore: book.editore,
+                        },
+                      });
+                    }}
+                    className="absolute top-2 right-2 z-10 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                    title="Aggiungi al diario"
+                  >
+                    <span className="text-xl font-bold leading-none">+</span>
+                  </button>
+                </div>
               ))}
             </div>
 
@@ -179,7 +211,9 @@ function ListOpere() {
         )}
 
         {!loading && books.length === 0 && (
-          <p className="text-center text-xl text-gray-500 mt-8">Nessuna opera trovata.</p>
+          <p className="text-center text-xl text-gray-500 mt-8">
+            Nessuna opera trovata.
+          </p>
         )}
       </div>
     </div>
