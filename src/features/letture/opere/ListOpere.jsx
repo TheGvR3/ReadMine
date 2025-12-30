@@ -11,6 +11,7 @@ function ListOpere() {
   */
   const [user, setUser] = useState(null);
   const [books, setBooks] = useState([]);
+  const [myLetture, setMyLetture] = useState([]); // Stato per le letture dell'utente
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,32 +31,68 @@ function ListOpere() {
 
   // Caricamento Dati
   useEffect(() => {
-    const loadBooks = async () => {
+    const loadData = async () => {
       setLoading(true);
       setError("");
 
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/opere/`,
-        { method: "GET" },
-        navigate
-      );
+      try {
+        // 1. Recupera Profilo per ID
+        const resUser = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+          {},
+          navigate
+        );
+        let currentUserId = null;
+        if (resUser && resUser.ok) {
+          const userData = await resUser.json();
+          currentUserId = userData.id || userData.id_utente;
+          setUser(userData);
+        }
 
-      if (!response) return;
+        // 2. Carica Opere e Letture (se loggato)
+        const fetchPromises = [
+          secureFetch(
+            `${import.meta.env.VITE_API_BASE_URL}/opere/`,
+            {},
+            navigate
+          ),
+        ];
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        setError(err.error || "Errore durante la richiesta.");
+        if (currentUserId) {
+          fetchPromises.push(
+            secureFetch(
+              `${import.meta.env.VITE_API_BASE_URL}/letture/${currentUserId}`,
+              {},
+              navigate
+            )
+          );
+        }
+
+        const [resOpere, resLetture] = await Promise.all(fetchPromises);
+
+        if (resOpere?.ok) {
+          const dataOpere = await resOpere.json();
+          setBooks(dataOpere);
+        }
+
+        if (resLetture?.ok) {
+          const dataLetture = await resLetture.json();
+          setMyLetture(dataLetture);
+        }
+      } catch (err) {
+        setError("Errore durante il caricamento.");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const data = await response.json();
-      setBooks(data);
-      setLoading(false);
     };
 
-    loadBooks();
+    loadData();
   }, [navigate]);
+
+  // Funzione per controllare se l'opera è già nel diario
+  const isAlreadyInDiario = (idOpera) => {
+    return myLetture.some((l) => l.id_opera === idOpera);
+  };
 
   /* ---------------------------------------------------------------------------
      3. LOGICA DI CALCOLO PER LA PAGINAZIONE
@@ -136,7 +173,6 @@ function ListOpere() {
     <div className="min-h-screen bg-gray-50">
       <Navbar setUser={setUser} setError={setError} />
 
-      {/* Header Azioni */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Lista Opere</h1>
         <Link
@@ -161,73 +197,90 @@ function ListOpere() {
 
         {!loading && !error && books.length > 0 && (
           <>
-            {/* Paginazione superiore */}
-            {currentPage > 1 && books.length > itemsPerPage && (
-              <PaginationControls />
-            )}
-
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {currentBooks.map((book) => (
-                <div key={book.id_opera} className="relative group">
-                  {/* Link principale alla card */}
-                  <Link to={`/opere/${book.id_opera}`}>
-                    <Book
-                      title={book.titolo}
-                      editore={book.editore}
-                      author={book.autori}
-                      anno={book.anno_pubblicazione}
-                      stato_opera={book.stato_opera}
-                      generi={book.generi}
-                      tipo={book.tipo}
-                      serie={book.serie}
-                    />
-                  </Link>
+              {currentBooks.map((book) => {
+                const inDiario = isAlreadyInDiario(book.id_opera);
 
-                  {/* Pulsante "+" rapido per creare la lettura */}
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      navigate("/createlettura", {
-                        state: {
-                          id_opera: book.id_opera,
-                          titolo: book.titolo,
-                          editore: book.editore,
-                        },
-                      });
-                    }}
-                    // Rimosso 'opacity-0' e 'group-hover', aggiunto uno stile più leggero
-                    className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-gray-200 text-gray-400 hover:text-indigo-600 hover:bg-white hover:border-indigo-200 shadow-sm transition-all duration-200"
-                    title="Aggiungi al diario"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
+                return (
+                  <div key={book.id_opera} className="relative group">
+                    <Link to={`/opere/${book.id_opera}`}>
+                      <Book
+                        title={book.titolo}
+                        editore={book.editore}
+                        author={book.autori}
+                        anno={book.anno_pubblicazione}
+                        stato_opera={book.stato_opera}
+                        generi={book.generi}
+                        tipo={book.tipo}
+                        serie={book.serie}
                       />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+                    </Link>
 
-            {/* Paginazione inferiore */}
+                    {/* BOTTONE DINAMICO: + (Verde) o V (Blu) */}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (inDiario) {
+                          // Se è già nel diario, potresti voler navigare alla lista letture
+                          navigate("/listletture");
+                        } else {
+                          navigate("/createlettura", {
+                            state: {
+                              id_opera: book.id_opera,
+                              titolo: book.titolo,
+                              editore: book.editore,
+                            },
+                          });
+                        }
+                      }}
+                      className={`absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full shadow-md transition-all duration-200 border-2 ${
+                        inDiario
+                          ? "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                          : "bg-white border-gray-100 text-green-600 hover:border-green-200 hover:scale-110"
+                      }`}
+                      title={inDiario ? "Già nel diario" : "Aggiungi al diario"}
+                    >
+                      {inDiario ? (
+                        // Icona Check (V)
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        // Icona Plus (+)
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
             {books.length > itemsPerPage && <PaginationControls />}
           </>
-        )}
-
-        {!loading && books.length === 0 && (
-          <p className="text-center text-xl text-gray-500 mt-8">
-            Nessuna opera trovata.
-          </p>
         )}
       </div>
     </div>
