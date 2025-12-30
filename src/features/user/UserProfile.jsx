@@ -134,7 +134,7 @@ function UserProfile() {
                         richieste degli utenti.
                       </p>
                       <Link
-                        to="/admin/requests"
+                        to="/editorrequests"
                         className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 transition duration-150"
                       >
                         🛡️ Gestisci Richieste Editor
