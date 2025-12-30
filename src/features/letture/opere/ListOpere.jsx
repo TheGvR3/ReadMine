@@ -18,6 +18,7 @@ function ListOpere() {
   const itemsPerPage = 12;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipo, setSelectedTipo] = useState("Tutti");
+  const [sortBy, setSortBy] = useState("titolo"); // Valore di default
 
   const navigate = useNavigate();
 
@@ -99,17 +100,15 @@ function ListOpere() {
   };
 
   /* ---------------------------------------------------------------------------
-   3. LOGICA DI CALCOLO PER LA PAGINAZIONE + FILTRI
-   ---------------------------------------------------------------------------*/
+    3. LOGICA DI CALCOLO PER LA PAGINAZIONE + FILTRI
+  ---------------------------------------------------------------------------*/
+  // 1. Filtriamo i libri
   const filteredBooks = books.filter((book) => {
     const titolo = book.titolo ? book.titolo.toLowerCase() : "";
     const autori = book.autori ? book.autori.toLowerCase() : "";
     const search = searchTerm.toLowerCase();
 
     const matchesSearch = titolo.includes(search) || autori.includes(search);
-
-    // LOGICA CORRETTA:
-    // Usiamo book.tipo (che dai tuoi dati è "Libro" o "Manga/Fumetto")
     const matchesTipo =
       selectedTipo === "Tutti" ||
       book.tipo === selectedTipo ||
@@ -118,10 +117,32 @@ function ListOpere() {
     return matchesSearch && matchesTipo;
   });
 
+  // 2. Ordiniamo i libri filtrati
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    if (sortBy === "titolo") {
+      return (a.titolo || "").localeCompare(b.titolo || "");
+    }
+    if (sortBy === "autore") {
+      return (a.autori || "").localeCompare(b.autori || "");
+    }
+    if (sortBy === "serie") {
+      // Gestiamo i casi in cui la serie è null mettendoli in fondo
+      const serieA = a.serie || "zzz";
+      const serieB = b.serie || "zzz";
+      return serieA.localeCompare(serieB);
+    }
+    if (sortBy === "anno") {
+      // Ordine decrescente (dal più recente)
+      return (b.anno_pubblicazione || 0) - (a.anno_pubblicazione || 0);
+    }
+    return 0;
+  });
+
+  // 3. Applichiamo la paginazione sui dati ordinati
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentBooks = filteredBooks.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
+  const currentBooks = sortedBooks.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedBooks.length / itemsPerPage);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -132,8 +153,8 @@ function ListOpere() {
   };
 
   /* ---------------------------------------------------------------------------
-     4. SOTTO-COMPONENTE: UI DEI CONTROLLI
-     ---------------------------------------------------------------------------
+    4. SOTTO-COMPONENTE: UI DEI CONTROLLI
+    ---------------------------------------------------------------------------
   */
   const PaginationControls = () => (
     <div className="flex flex-wrap justify-center items-center gap-2 mt-8 mb-4">
@@ -267,6 +288,25 @@ function ListOpere() {
               <option value="Manga/Fumetto">Manga & Fumetti</option>
               <option value="Rivista">Riviste</option>
               <option value="Altro">Altro</option>
+            </select>
+          </div>
+          {/* Selettore Ordinamento */}
+          <div className="w-full md:w-64">
+            <label className="block text-xs text-gray-500 mb-1 ml-1">
+              Ordina per:
+            </label>
+            <select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 text-sm appearance-none"
+            >
+              <option value="titolo">Titolo (A-Z)</option>
+              <option value="autore">Autore (A-Z)</option>
+              <option value="serie">Serie</option>
+              <option value="anno">Anno (Più recenti)</option>
             </select>
           </div>
         </div>
