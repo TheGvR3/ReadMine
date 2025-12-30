@@ -99,7 +99,7 @@ function Home() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Intestazione */}
-        <div className="bg-white p-8 rounded-xl shadow-xl text-center mb-10 border-t-4 border-indigo-600">
+        <div className="bg-white p-8 rounded-xl shadow-xl text-center mb-10 border-t-4 border-blue-600">
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
             👋 Benvenuto nella tua Dashboard
           </h1>
@@ -168,7 +168,7 @@ function Home() {
                 </p>
                 <Link
                   to="/createlettura"
-                  className="inline-block bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md"
+                  className="inline-block bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md"
                 >
                   + Aggiungi la tua prima lettura
                 </Link>

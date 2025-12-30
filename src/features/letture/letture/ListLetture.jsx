@@ -24,7 +24,8 @@ function ListLetture() {
           navigate
         );
 
-        if (!resUser || !resUser.ok) throw new Error("Errore nel recupero profilo");
+        if (!resUser || !resUser.ok)
+          throw new Error("Errore nel recupero profilo");
         const userData = await resUser.json();
         const currentUserId = userData.id || userData.id_utente;
 
@@ -61,7 +62,6 @@ function ListLetture() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
-        
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 text-center sm:text-left">
           <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 tracking-tight">
@@ -88,10 +88,15 @@ function ListLetture() {
         )}
 
         {!loading && letture.length === 0 && !error && (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-200">
-            <p className="text-gray-500 text-lg">Il tuo diario è ancora vuoto.</p>
-            <Link to="/createlettura" className="text-green-600 font-bold hover:underline mt-2 inline-block">
-              Registra la tua prima lettura
+          <div className="text-center py-10 bg-white/5 rounded-2xl border-2 border-dashed border-white/20">
+            <p className="text-indigo-100 text-lg mb-6">
+              Il tuo diario è ancora vuoto.
+            </p>
+            <Link
+              to="/createlettura"
+              className="inline-block bg-green-500 hover:bg-green-400 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg transform hover:scale-105"
+            >
+              + Aggiungi la tua prima lettura
             </Link>
           </div>
         )}
@@ -102,9 +107,15 @@ function ListLetture() {
               <table className="min-w-full">
                 <thead className="bg-blue-50 hidden md:table-header-group">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">Opera</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">Stato</th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">Progresso</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">
+                      Opera
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">
+                      Stato
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-blue-700 tracking-wider">
+                      Progresso
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -146,8 +157,16 @@ function ListLetture() {
                         <div className="flex items-center gap-3">
                           {l.volume || l.capitolo ? (
                             <>
-                              {l.volume && <span>Vol. <strong>{l.volume}</strong></span>}
-                              {l.capitolo && <span>Cap. <strong>{l.capitolo}</strong></span>}
+                              {l.volume && (
+                                <span>
+                                  Vol. <strong>{l.volume}</strong>
+                                </span>
+                              )}
+                              {l.capitolo && (
+                                <span>
+                                  Cap. <strong>{l.capitolo}</strong>
+                                </span>
+                              )}
                             </>
                           ) : (
                             <span className="text-gray-400 italic">-</span>
@@ -166,20 +185,20 @@ function ListLetture() {
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-10">
             <div className="flex gap-4 order-2 sm:order-1">
-                <button
+              <button
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((prev) => prev - 1)}
                 className="px-6 py-2 rounded-xl bg-white border border-gray-300 shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-all font-bold text-gray-700"
-                >
+              >
                 ←
-                </button>
-                <button
+              </button>
+              <button
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage((prev) => prev + 1)}
                 className="px-6 py-2 rounded-xl bg-white border border-gray-300 shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-all font-bold text-gray-700"
-                >
+              >
                 →
-                </button>
+              </button>
             </div>
             <span className="text-gray-500 font-medium order-1 sm:order-2">
               Pagina <strong>{currentPage}</strong> di {totalPages}
