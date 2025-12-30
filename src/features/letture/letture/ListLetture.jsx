@@ -37,20 +37,20 @@ function ListLetture() {
         // 2. Determino quale endpoint chiamare in base alla categoria
         let endpoint = `${
           import.meta.env.VITE_API_BASE_URL
-        }/letture/${currentUserId}`;
+        }/letture/utente/${currentUserId}`;
 
         if (categoria === "libri") {
           endpoint = `${
             import.meta.env.VITE_API_BASE_URL
-          }/letture/utente/${currentUserId}/libri`;
+          }/letture/utente/libri/${currentUserId}`;
         } else if (categoria === "manga") {
           endpoint = `${
             import.meta.env.VITE_API_BASE_URL
-          }/letture/utente/${currentUserId}/manga`;
+          }/letture/utente/manga/${currentUserId}`;
         } else if (categoria === "riviste") {
           endpoint = `${
             import.meta.env.VITE_API_BASE_URL
-          }/letture/utente/${currentUserId}/riviste`;
+          }/letture/utente/riviste/${currentUserId}`;
         }
 
         // 3. Eseguo la fetch

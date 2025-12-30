@@ -63,7 +63,7 @@ function Home() {
         if (currentUserId) {
           fetchPromises.push(
             secureFetch(
-              `${import.meta.env.VITE_API_BASE_URL}/letture/${currentUserId}`,
+              `${import.meta.env.VITE_API_BASE_URL}/letture/utente/${currentUserId}`,
               {},
               navigate
             )
