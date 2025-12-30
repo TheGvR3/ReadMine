@@ -150,7 +150,7 @@ function ListLetture() {
                               {l.capitolo && <span>Cap. <strong>{l.capitolo}</strong></span>}
                             </>
                           ) : (
-                            <span className="text-gray-400 italic">Inizio diario...</span>
+                            <span className="text-gray-400 italic">-</span>
                           )}
                         </div>
                       </td>
