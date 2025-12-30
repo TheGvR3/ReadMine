@@ -16,6 +16,8 @@ function ListOpere() {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTipo, setSelectedTipo] = useState("Tutti");
 
   const navigate = useNavigate();
 
@@ -61,7 +63,9 @@ function ListOpere() {
         if (currentUserId) {
           fetchPromises.push(
             secureFetch(
-              `${import.meta.env.VITE_API_BASE_URL}/letture/utente/${currentUserId}`,
+              `${
+                import.meta.env.VITE_API_BASE_URL
+              }/letture/utente/${currentUserId}`,
               {},
               navigate
             )
@@ -95,13 +99,30 @@ function ListOpere() {
   };
 
   /* ---------------------------------------------------------------------------
-     3. LOGICA DI CALCOLO PER LA PAGINAZIONE
-     ---------------------------------------------------------------------------
-  */
+   3. LOGICA DI CALCOLO PER LA PAGINAZIONE + FILTRI
+   ---------------------------------------------------------------------------*/
+  const filteredBooks = books.filter((book) => {
+    // Verifichiamo che titolo e autori esistano prima di fare toLowerCase()
+    const titolo = book.titolo ? book.titolo.toLowerCase() : "";
+    const autori = book.autori ? book.autori.toLowerCase() : "";
+    const search = searchTerm.toLowerCase();
+
+    const matchesSearch = titolo.includes(search) || autori.includes(search);
+
+    // IMPORTANTE: Il valore deve corrispondere a quello che hai nelle <option>
+    // Se nel DB hai "Libro", l'option deve avere value="Libro"
+    const matchesTipo =
+      selectedTipo === "Tutti" ||
+      book.tipo?.nome_tipo === selectedTipo ||
+      String(book.id_tipo) === selectedTipo; // Aggiunto controllo anche su ID per sicurezza
+
+    return matchesSearch && matchesTipo;
+  });
+
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentBooks = books.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(books.length / itemsPerPage);
+  const currentBooks = filteredBooks.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -173,113 +194,217 @@ function ListOpere() {
     <div className="min-h-screen bg-gray-50">
       <Navbar setUser={setUser} setError={setError} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Lista Opere</h1>
-        <Link
-          to="/createopera"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 transition duration-150"
-        >
-          + Nuova Opera
-        </Link>
-      </div>
+      {/* CONTAINER UNICO PER TUTTO IL CONTENUTO */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 1. HEADER: Titolo e Bottone "Nuova Opera" */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            Lista Opere
+          </h1>
+          <Link
+            to="/createopera"
+            className="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
+          >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Nuova Opera
+          </Link>
+        </div>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-        {loading && (
-          <p className="text-center text-lg text-gray-700">
-            Caricamento in corso...
-          </p>
-        )}
-        {error && (
-          <p className="text-center text-xl text-red-600 font-medium my-4">
-            {error}
-          </p>
-        )}
-
-        {!loading && !error && books.length > 0 && (
-          <>
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {currentBooks.map((book) => {
-                const inDiario = isAlreadyInDiario(book.id_opera);
-
-                return (
-                  <div key={book.id_opera} className="relative group">
-                    <Link to={`/opere/${book.id_opera}`}>
-                      <Book
-                        title={book.titolo}
-                        editore={book.editore}
-                        author={book.autori}
-                        anno={book.anno_pubblicazione}
-                        stato_opera={book.stato_opera}
-                        generi={book.generi}
-                        tipo={book.tipo}
-                        serie={book.serie}
-                      />
-                    </Link>
-
-                    {/* BOTTONE DINAMICO: + (Verde) o V (Blu) */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (inDiario) {
-                          // Se è già nel diario, potresti voler navigare alla lista letture
-                          navigate("/listletture");
-                        } else {
-                          navigate("/createlettura", {
-                            state: {
-                              id_opera: book.id_opera,
-                              titolo: book.titolo,
-                              editore: book.editore,
-                            },
-                          });
-                        }
-                      }}
-                      className={`absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full shadow-md transition-all duration-200 border-2 ${
-                        inDiario
-                          ? "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                          : "bg-white border-gray-100 text-green-600 hover:border-green-200 hover:scale-110"
-                      }`}
-                      title={inDiario ? "Già nel diario" : "Aggiungi al diario"}
-                    >
-                      {inDiario ? (
-                        // Icona Check (V)
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={3}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      ) : (
-                        // Icona Plus (+)
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
+        {/* 2. BARRA DEI FILTRI: Ricerca e Select */}
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 mb-10">
+          <div className="flex-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
             </div>
-            {books.length > itemsPerPage && <PaginationControls />}
+            <input
+              type="text"
+              placeholder="Cerca per titolo o autore..."
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 text-sm transition-all"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+
+          <div className="w-full md:w-64">
+            <select
+              value={selectedTipo}
+              onChange={(e) => {
+                setSelectedTipo(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all appearance-none"
+            >
+              <option value="Tutti">Tutte le categorie</option>
+              <option value="Libro">Libri</option>
+              <option value="Manga">Manga</option>
+              <option value="Rivista">Riviste</option>
+            </select>
+          </div>
+        </div>
+
+        {/* 3. CONTENUTO PRINCIPALE: Loading, Error o Grid */}
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="ml-4 text-gray-600 font-medium">
+              Caricamento in corso...
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4 rounded-md">
+            <p className="text-red-700 font-medium">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            {filteredBooks.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {currentBooks.map((book) => {
+                    const inDiario = isAlreadyInDiario(book.id_opera);
+                    return (
+                      <div
+                        key={book.id_opera}
+                        className="relative group transition-transform duration-300 hover:-translate-y-1"
+                      >
+                        <Link to={`/opere/${book.id_opera}`}>
+                          <Book
+                            title={book.titolo}
+                            editore={book.editore}
+                            author={book.autori}
+                            anno={book.anno_pubblicazione}
+                            stato_opera={book.stato_opera}
+                            generi={book.generi}
+                            tipo={book.tipo}
+                            serie={book.serie}
+                          />
+                        </Link>
+
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (inDiario) {
+                              navigate("/listletture");
+                            } else {
+                              navigate("/createlettura", {
+                                state: {
+                                  id_opera: book.id_opera,
+                                  titolo: book.titolo,
+                                  editore: book.editore,
+                                },
+                              });
+                            }
+                          }}
+                          className={`absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full shadow-lg transition-all duration-200 border-2 ${
+                            inDiario
+                              ? "bg-blue-600 border-blue-600 text-white hover:bg-blue-700"
+                              : "bg-white border-gray-100 text-green-600 hover:border-green-500 hover:scale-110"
+                          }`}
+                          title={
+                            inDiario ? "Già nel diario" : "Aggiungi al diario"
+                          }
+                        >
+                          {inDiario ? (
+                            <svg
+                              className="h-6 w-6"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="h-6 w-6"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* PAGINAZIONE */}
+                {filteredBooks.length > itemsPerPage && <PaginationControls />}
+              </>
+            ) : (
+              <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-gray-300">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  Nessun risultato
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Prova a modificare i termini di ricerca o i filtri.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedTipo("Tutti");
+                  }}
+                  className="mt-6 text-blue-600 font-semibold hover:text-blue-500"
+                >
+                  Resetta filtri
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

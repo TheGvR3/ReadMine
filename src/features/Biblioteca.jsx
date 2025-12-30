@@ -76,7 +76,7 @@ function Biblioteca() {
         {/* SEZIONE: ARCHIVIO GENERALE */}
         <div>
           <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="bg-indigo-500 w-2 h-6 rounded-full"></span>
+            <span className="bg-blue-500 w-2 h-6 rounded-full"></span>
             ALTRO
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
