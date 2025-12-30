@@ -14,7 +14,6 @@ function Navbar({ setUser, setError }) {
   // Icona del logo (SVG)
   // Estratta in un componente interno per pulizia e riutilizzo
   // ---------------------------------------------------------------------------
-  
 
   // ---------------------------------------------------------------------------
   // Componente NavLink:
@@ -46,7 +45,6 @@ function Navbar({ setUser, setError }) {
     <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          
           {/* --- NUOVO LOGO READMINE --- */}
           <div className="flex items-center">
             <Link to="/home" className="flex flex-col leading-none">
@@ -88,11 +86,31 @@ function Navbar({ setUser, setError }) {
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition duration-150 ease-in-out"
               >
                 <span className="sr-only">Apri menu principale</span>
-                <svg className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
-                <svg className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -101,12 +119,26 @@ function Navbar({ setUser, setError }) {
       </div>
 
       {/* MENU MOBILE */}
-      <div className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`} id="mobile-menu">
+      <div
+        className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`}
+        id="mobile-menu"
+      >
         <div className="pt-2 pb-3 space-y-1 border-t border-gray-100 bg-gray-50">
-          <NavLink to="/home" isMobile={true}>Dashboard</NavLink>
-          <NavLink to="/archivio" isMobile={true}>Archivio</NavLink>
-          <NavLink to="/chat" isMobile={true}>Chat AI</NavLink>
-          <NavLink to="/profile" isMobile={true}>Profilo</NavLink>
+          <NavLink to="/home" isMobile={true}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/listletture" isMobile={true}>
+            Letture
+          </NavLink>
+          <NavLink to="/archivio" isMobile={true}>
+            Archivio
+          </NavLink>
+          <NavLink to="/chat" isMobile={true}>
+            Chat AI
+          </NavLink>
+          <NavLink to="/profile" isMobile={true}>
+            Profilo
+          </NavLink>
           <div className="pt-4 px-4">
             <Logout setUser={setUser} setError={setError} />
           </div>
