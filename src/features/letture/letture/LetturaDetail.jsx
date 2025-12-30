@@ -202,23 +202,23 @@ function LetturaDetail() {
 
             <div className="bg-gray-50 rounded-3xl p-8 text-white flex justify-around items-center shadow-xl">
               <div className="text-center">
-                <p className="text-blue-300 text-xs font-bold uppercase mb-1">
+                <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Volume
                 </p>
                 <p className="text-4xl font-black">{lettura.volume ?? "--"}</p>
               </div>
-              <div className="h-12 w-px bg-blue-700"></div>
+              <div className="h-12 w-px bg-gray-300"></div>
               <div className="text-center">
-                <p className="text-blue-300 text-xs font-bold uppercase mb-1">
+                <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Capitolo
                 </p>
                 <p className="text-4xl font-black">
                   {lettura.capitolo ?? "--"}
                 </p>
               </div>
-              <div className="h-12 w-px bg-blue-700"></div>
+              <div className="h-12 w-px bg-gray-300"></div>
               <div className="text-center">
-                <p className="text-blue-300 text-xs font-bold uppercase mb-1">
+                <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Pagina
                 </p>
                 <p className="text-4xl font-black">{lettura.pagina ?? "--"}</p>
