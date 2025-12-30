@@ -113,7 +113,7 @@ function Home() {
         </div>
 
         {/* BOX INVITO EDITOR */}
-        {!user.editor && (
+        {user && !user.editor && (
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
             <div className="text-left">
               <h3 className="text-xl font-bold text-indigo-900 mb-1">
