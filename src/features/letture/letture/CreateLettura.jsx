@@ -88,16 +88,25 @@ function CreateLettura() {
     setFormData((prev) => ({
       ...prev,
       id_opera: selectedOption ? selectedOption.value : null,
-      // Se è un libro, forziamo il reset del volume a stringa vuota
-      volume: operaData?.id_tipo === 1 ? "" : prev.volume,
+      // Reset immediato del volume se l'opera selezionata è un libro
+      volume:
+        operaData?.id_tipo === 1 || operaData?.tipo === "Libro"
+          ? ""
+          : prev.volume,
     }));
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // BLOCCO DI SICUREZZA: Se sto cercando di scrivere nel volume di un libro, ignoro l'input
-    if (isLibro && name === "volume") return;
+    // BLOCCO DI SICUREZZA: Impedisce l'aggiornamento dello stato se è un libro e si tenta di modificare il volume
+    if (
+      (selectedOperaDetails?.id_tipo === 1 ||
+        selectedOperaDetails?.tipo === "Libro") &&
+      name === "volume"
+    ) {
+      return;
+    }
 
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
@@ -238,9 +247,16 @@ function CreateLettura() {
             {/* SEZIONE PROGRESSO */}
             <div className="grid grid-cols-3 gap-4">
               {["volume", "capitolo", "pagina"].map((field) => {
+                // LOGICA DI DISABILITAZIONE:
+                // Il volume è disabilitato se lo stato è "da_iniziare" OPPURE se l'opera è un libro
+                const isFieldVolume = field === "volume";
+                const isOperaLibro =
+                  selectedOperaDetails?.id_tipo === 1 ||
+                  selectedOperaDetails?.tipo === "Libro";
+
                 const isDisabled =
                   formData.stato === "da_iniziare" ||
-                  (isLibro && field === "volume");
+                  (isOperaLibro && isFieldVolume);
 
                 return (
                   <div key={field}>
@@ -261,11 +277,11 @@ function CreateLettura() {
                       value={formData[field]}
                       onChange={handleChange}
                       disabled={isDisabled}
-                      readOnly={isDisabled} // Aggiungiamo readOnly per sicurezza extra
-                      placeholder={isLibro && field === "volume" ? "—" : ""}
+                      readOnly={isDisabled}
+                      placeholder={isOperaLibro && isFieldVolume ? "N/A" : ""}
                       className={`w-full px-3 py-2 border rounded-md transition-all ${
                         isDisabled
-                          ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-300 shadow-inner pointer-events-none"
+                          ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400 shadow-inner pointer-events-none"
                           : "border-gray-300 focus:ring-2 focus:ring-blue-500"
                       }`}
                     />
