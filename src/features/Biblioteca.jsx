@@ -77,57 +77,10 @@ function Biblioteca() {
         <div>
           <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
             <span className="bg-indigo-500 w-2 h-6 rounded-full"></span>
-            ARCHIVIO GENERALE
+            ALTRO
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link
-              to="/ListOpere"
-              className="p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition border border-gray-200"
-            >
-              <h2 className="text-xl font-bold text-indigo-600 mb-2">
-                📚 Tutte le Opere
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Ricerca tra tutti i titoli registrati.
-              </p>
-            </Link>
-
-            <Link
-              to="/ListSerie"
-              className="p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition border border-gray-200"
-            >
-              <h2 className="text-xl font-bold text-indigo-600 mb-2">
-                🗂️ Serie
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Organizza le tue letture per saghe.
-              </p>
-            </Link>
-
-            <Link
-              to="/ListAutori"
-              className="p-6 bg-white rounded-xl shadow-sm hover:shadow-lg transition border border-gray-200"
-            >
-              <h2 className="text-xl font-bold text-indigo-600 mb-2">
-                ✍️ Autori
-              </h2>
-              <p className="text-gray-600 text-sm">
-                Esplora i creatori delle opere.
-              </p>
-            </Link>
-
             {/* SEZIONE IN SVILUPPO (NON UTILIZZABILE) */}
-            <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 opacity-60 cursor-not-allowed relative overflow-hidden">
-              <span className="absolute top-2 right-2 bg-gray-200 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                Developing
-              </span>
-              <h2 className="text-xl font-bold text-gray-400 mb-2">
-                🎭 Generi
-              </h2>
-              <p className="text-gray-400 italic text-sm">
-                Filtri per genere in arrivo.
-              </p>
-            </div>
 
             <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 opacity-60 cursor-not-allowed relative overflow-hidden">
               <span className="absolute top-2 right-2 bg-gray-200 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
@@ -146,10 +99,22 @@ function Biblioteca() {
                 Developing
               </span>
               <h2 className="text-xl font-bold text-gray-400 mb-2">
-                🏢 Editori
+                ⭐ Serie Preferite
               </h2>
               <p className="text-gray-400 italic text-sm">
-                Cataloghi editoriali completi.
+                Le tue serie più lette e apprezzate.
+              </p>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 opacity-60 cursor-not-allowed relative overflow-hidden">
+              <span className="absolute top-2 right-2 bg-gray-200 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                Developing
+              </span>
+              <h2 className="text-xl font-bold text-gray-400 mb-2">
+                ⭐ Autori Preferiti
+              </h2>
+              <p className="text-gray-400 italic text-sm">
+                Gli autori che hai più letto e apprezzato.
               </p>
             </div>
           </div>
