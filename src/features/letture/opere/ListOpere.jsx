@@ -186,8 +186,8 @@ function ListOpere() {
                   {/* Pulsante "+" rapido per creare la lettura */}
                   <button
                     onClick={(e) => {
-                      e.preventDefault(); // Impedisce al Link di attivarsi
-                      e.stopPropagation(); // Impedisce l'evento di bubbling
+                      e.preventDefault();
+                      e.stopPropagation();
                       navigate("/createlettura", {
                         state: {
                           id_opera: book.id_opera,
@@ -196,10 +196,24 @@ function ListOpere() {
                         },
                       });
                     }}
-                    className="absolute top-2 right-2 z-10 bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                    // Rimosso 'opacity-0' e 'group-hover', aggiunto uno stile più leggero
+                    className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-gray-200 text-gray-400 hover:text-indigo-600 hover:bg-white hover:border-indigo-200 shadow-sm transition-all duration-200"
                     title="Aggiungi al diario"
                   >
-                    <span className="text-xl font-bold leading-none">+</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
                   </button>
                 </div>
               ))}
