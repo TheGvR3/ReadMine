@@ -242,9 +242,10 @@ function ListOpere() {
           </Link>
         </div>
 
-        {/* 2. BARRA DEI FILTRI: Ricerca e Select */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 mb-10">
-          <div className="flex-1 relative">
+        {/* 2. BARRA DEI FILTRI: Ricerca, Tipo e Ordinamento */}
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-end gap-4 mb-10">
+          {/* Search Input */}
+          <div className="flex-1 w-full relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
                 className="h-5 w-5 text-gray-400"
@@ -272,27 +273,30 @@ function ListOpere() {
             />
           </div>
 
+          {/* Select Categoria */}
           <div className="w-full md:w-64">
+            <label className="block text-xs text-gray-400 mb-1 ml-1">
+              Filtra per:
+            </label>
             <select
               value={selectedTipo}
               onChange={(e) => {
                 setSelectedTipo(e.target.value);
                 setCurrentPage(1);
               }}
-              className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all appearance-none"
+              className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 text-sm appearance-none transition-all"
             >
               <option value="Tutti">Tutte le categorie</option>
-
-              {/* I value devono essere identici alle stringhe nel JSON */}
               <option value="Libro">Libri</option>
               <option value="Manga/Fumetto">Manga & Fumetti</option>
               <option value="Rivista">Riviste</option>
               <option value="Altro">Altro</option>
             </select>
           </div>
-          {/* Selettore Ordinamento */}
+
+          {/* Select Ordinamento */}
           <div className="w-full md:w-64">
-            <label className="block text-xs text-gray-500 mb-1 ml-1">
+            <label className="block text-xs text-gray-400 mb-1 ml-1">
               Ordina per:
             </label>
             <select
@@ -301,7 +305,7 @@ function ListOpere() {
                 setSortBy(e.target.value);
                 setCurrentPage(1);
               }}
-              className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 text-sm appearance-none"
+              className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 text-sm appearance-none transition-all"
             >
               <option value="titolo">Titolo (A-Z)</option>
               <option value="autore">Autore (A-Z)</option>
