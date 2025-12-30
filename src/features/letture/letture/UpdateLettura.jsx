@@ -23,6 +23,9 @@ function UpdateLettura() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Determiniamo se l'opera è un libro (id_tipo 1)
+  const isLibro = obraInfo?.id_tipo === 1;
+
   useEffect(() => {
     const fetchLettura = async () => {
       setDataLoading(true);
@@ -56,10 +59,12 @@ function UpdateLettura() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // BLOCCO SICUREZZA: Se è un libro, non permettere modifiche al volume
+    if (isLibro && name === "volume") return;
+
     setFormData((prev) => {
       const newData = { ...prev, [name]: value };
 
-      // LOGICA DI RESET: Se cambio lo stato in "da_iniziare", pulisco i campi numerici
       if (name === "stato" && value === "da_iniziare") {
         newData.volume = "";
         newData.capitolo = "";
@@ -74,16 +79,17 @@ function UpdateLettura() {
     e.preventDefault();
     setLoading(true);
 
-    // Controllo lo stato aggiornato al momento del click
     const isActuallyDaIniziare = formData.stato === "da_iniziare";
 
     const dataToSend = {
       data_lettura: formData.data_lettura || null,
-      volume: isActuallyDaIniziare
-        ? null
-        : formData.volume !== ""
-        ? parseInt(formData.volume, 10)
-        : null,
+      // Se è libro o da iniziare, mandiamo null per il volume
+      volume:
+        isActuallyDaIniziare || isLibro
+          ? null
+          : formData.volume !== ""
+          ? parseInt(formData.volume, 10)
+          : null,
       capitolo: isActuallyDaIniziare
         ? null
         : formData.capitolo !== ""
@@ -176,34 +182,41 @@ function UpdateLettura() {
               </div>
             </div>
 
-            {/* PROGRESSO - CONTROLLO DIRETTO SULLO STATO */}
+            {/* PROGRESSO */}
             <div className="grid grid-cols-3 gap-4">
-              {["volume", "capitolo", "pagina"].map((field) => (
-                <div key={field}>
-                  <label
-                    className={`block text-sm font-semibold transition-colors ${
-                      formData.stato === "da_iniziare"
-                        ? "text-gray-300"
-                        : "text-gray-800"
-                    }`}
-                  >
-                    {field.charAt(0).toUpperCase() + field.slice(1)}
-                  </label>
-                  <input
-                    type="number"
-                    name={field}
-                    value={formData[field]}
-                    onChange={handleChange}
-                    // IMPORTANTE: Leggiamo direttamente dallo stato corrente del form
-                    disabled={formData.stato === "da_iniziare"}
-                    className={`mt-1 block w-full px-3 py-2 border rounded-md outline-none transition-all ${
-                      formData.stato === "da_iniziare"
-                        ? "bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400"
-                        : "border-gray-300 focus:ring-2 focus:ring-blue-500"
-                    }`}
-                  />
-                </div>
-              ))}
+              {["volume", "capitolo", "pagina"].map((field) => {
+                const isFieldVolume = field === "volume";
+                // Disabilita se "da iniziare" OPPURE se è un libro e stiamo guardando il volume
+                const isDisabled =
+                  formData.stato === "da_iniziare" ||
+                  (isLibro && isFieldVolume);
+
+                return (
+                  <div key={field}>
+                    <label
+                      className={`block text-sm font-semibold transition-colors ${
+                        isDisabled ? "text-gray-300" : "text-gray-800"
+                      }`}
+                    >
+                      {field.charAt(0).toUpperCase() + field.slice(1)}
+                    </label>
+                    <input
+                      type="number"
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      disabled={isDisabled}
+                      readOnly={isDisabled}
+                      placeholder={isLibro && isFieldVolume ? "—" : ""}
+                      className={`mt-1 block w-full px-3 py-2 border rounded-md outline-none transition-all ${
+                        isDisabled
+                          ? "bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400 pointer-events-none shadow-inner"
+                          : "border-gray-300 focus:ring-2 focus:ring-blue-500"
+                      }`}
+                    />
+                  </div>
+                );
+              })}
             </div>
 
             <div>
