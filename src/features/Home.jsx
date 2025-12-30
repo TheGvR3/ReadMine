@@ -134,6 +134,82 @@ function Home() {
           </button>
         </div>
 
+        {/* GUIDA RAPIDA ALL'USO */}
+        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm mb-10">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            📖 Guida rapida alla Biblioteca
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+            {/* Colonna: Creazione Opere */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-blue-600 flex items-center gap-2">
+                ✨ Come inserire una nuova Opera
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Per mantenere i dati puliti, un'opera può essere creata solo se
+                i suoi "mattoncini" esistono già. Segui questo ordine:
+              </p>
+              <ol className="list-decimal list-inside text-gray-700 text-sm space-y-2 ml-2">
+                <li>
+                  Controlla se <strong>Autore</strong> e <strong>Genere</strong>{" "}
+                  sono già presenti nelle rispettive liste.
+                </li>
+                <li>
+                  Se mancano,{" "}
+                  <span className="text-green-600 font-semibold">creali</span>{" "}
+                  prima di procedere.
+                </li>
+                <li>
+                  Controlla se l'opera fa parte di una <strong>Serie</strong>{" "}
+                  (facoltativo).
+                </li>
+                <li>
+                  Infine, vai su{" "}
+                  <span className="font-semibold text-gray-900">
+                    Nuova Opera
+                  </span>{" "}
+                  e compila i campi.
+                </li>
+              </ol>
+              <p className="text-xs italic text-gray-500">
+                Nota: Non puoi creare un'opera senza almeno un autore e un
+                genere associati!
+              </p>
+            </div>
+
+            {/* Colonna: Preferiti e Biblioteca */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-orange-600 flex items-center gap-2">
+                📚 Gestire la tua Biblioteca
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Vuoi tenere traccia di quello che leggi o dei tuoi libri
+                preferiti? Hai due strade semplicissime:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 text-sm space-y-3 ml-2">
+                <li>
+                  <strong>Dalla Biblioteca:</strong> Esplora le opere esistenti
+                  e clicca sul tasto
+                  <span className="mx-1 px-2 py-0.5 bg-green-100 text-green-700 rounded font-bold">
+                    + Diario
+                  </span>
+                  per aggiungerla alle tue letture.
+                </li>
+                <li>
+                  <strong>Inserimento Manuale:</strong> Se l'opera non esiste
+                  ancora nel nostro database, puoi
+                  <span className="text-blue-600 font-semibold underline">
+                    {" "}
+                    aggiungerla tu stesso
+                  </span>{" "}
+                  (se sei un Editor) e poi collegarla al tuo diario.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {loading && (
           <p className="text-center text-lg text-gray-600">
             Caricamento in corso...
