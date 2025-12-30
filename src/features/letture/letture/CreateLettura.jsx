@@ -95,6 +95,10 @@ function CreateLettura() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // BLOCCO DI SICUREZZA: Se sto cercando di scrivere nel volume di un libro, ignoro l'input
+    if (isLibro && name === "volume") return;
+
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
       if (name === "stato" && value === "da_iniziare") {
@@ -234,7 +238,6 @@ function CreateLettura() {
             {/* SEZIONE PROGRESSO */}
             <div className="grid grid-cols-3 gap-4">
               {["volume", "capitolo", "pagina"].map((field) => {
-                // Disabilita se "Da iniziare" OPPURE se è un Libro e il campo è "volume"
                 const isDisabled =
                   formData.stato === "da_iniziare" ||
                   (isLibro && field === "volume");
@@ -258,10 +261,11 @@ function CreateLettura() {
                       value={formData[field]}
                       onChange={handleChange}
                       disabled={isDisabled}
+                      readOnly={isDisabled} // Aggiungiamo readOnly per sicurezza extra
                       placeholder={isLibro && field === "volume" ? "—" : ""}
                       className={`w-full px-3 py-2 border rounded-md transition-all ${
                         isDisabled
-                          ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-300 shadow-inner"
+                          ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-300 shadow-inner pointer-events-none"
                           : "border-gray-300 focus:ring-2 focus:ring-blue-500"
                       }`}
                     />
