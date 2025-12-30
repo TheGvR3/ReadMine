@@ -33,7 +33,9 @@ function UpdateGenere() {
         setNomeGenere(data.nome_genere || data.generi || "");
       } else {
         const errData = await response.json().catch(() => ({}));
-        setError(errData.error || "Errore nel caricamento dei dati del genere.");
+        setError(
+          errData.error || "Errore nel caricamento dei dati del genere."
+        );
       }
       setFetching(false);
     };
@@ -77,11 +79,12 @@ function UpdateGenere() {
     setLoading(false);
   };
 
-  if (fetching) return <p className="text-center mt-10">Caricamento in corso...</p>;
+  if (fetching)
+    return <p className="text-center mt-10">Caricamento in corso...</p>;
 
   return (
     <div>
-      <Navbar />
+      <Navbar setUser={setUser} setError={setError} />{" "}
       <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
         <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg border-t-4 border-blue-600">
           <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
@@ -93,7 +96,7 @@ function UpdateGenere() {
               {error}
             </div>
           )}
-          
+
           {successMessage && (
             <div className="bg-green-50 text-green-700 p-3 rounded-md text-center mb-4 border border-green-200 font-bold">
               {successMessage}
@@ -102,7 +105,9 @@ function UpdateGenere() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nome Genere *</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Nome Genere *
+              </label>
               <input
                 type="text"
                 value={nomeGenere}

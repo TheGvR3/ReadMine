@@ -60,8 +60,7 @@ function CreateGenere() {
   // ---------------------------------------------------------------------------
   return (
     <div>
-      <Navbar />
-
+<Navbar setUser={setUser} setError={setError} />
       <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
         <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
           <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">

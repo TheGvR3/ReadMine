@@ -82,7 +82,7 @@ function UpdateProfileData() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar setUser={setUser} setError={setError} />
       <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-indigo-700">
           Modifica Dati Personali

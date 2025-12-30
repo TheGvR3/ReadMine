@@ -130,8 +130,7 @@ function ListGeneri() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar setError={setError} />
-
+<Navbar setUser={setUser} setError={setError} />
       {/* Header Azioni */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Lista Generi</h1>
