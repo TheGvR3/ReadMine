@@ -119,8 +119,10 @@ function CreateLettura() {
       `${import.meta.env.VITE_API_BASE_URL}/letture`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
+        headers: {
+          "Content-Type": "application/json", // FONDAMENTALE
+        },
+        body: JSON.stringify(dataToSend), // Deve essere una stringa JSON
       },
       navigate
     );
