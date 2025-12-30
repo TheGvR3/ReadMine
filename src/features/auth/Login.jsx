@@ -46,8 +46,8 @@ function Login() {
       setError("L'username deve avere almeno 3 caratteri");
       setLoading(false);
       return;
-    } else if (identifier.trim().length > 30) {
-      setError("L'username non può superare i 30 caratteri");
+    } else if (identifier.trim().length > 100) {
+      setError("L'username non può superare i 100 caratteri");
       setLoading(false);
       return;
     } else if (/\s/.test(identifier)) {

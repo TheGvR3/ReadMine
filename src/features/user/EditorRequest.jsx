@@ -7,6 +7,7 @@ function EditorRequests() {
   const [requests, setRequests] = useState([]);
   const [history, setHistory] = useState([]); // Stato per lo storico
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
