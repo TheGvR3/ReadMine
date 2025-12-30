@@ -69,7 +69,7 @@ function ListLetture() {
           </h1>
           <Link
             to="/createlettura"
-            className="w-full sm:w-auto bg-blue-green hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all text-center"
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all text-center"
           >
             + Aggiungi Opera
           </Link>

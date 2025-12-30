@@ -142,7 +142,7 @@ function CreateLettura() {
       <Navbar />
       <div className="flex justify-center items-center py-12 px-4">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg border border-gray-100">
-          <h1 className="text-2xl font-bold mb-6 text-center text-indigo-800">
+          <h1 className="text-2xl font-bold mb-6 text-center text-blue-800">
             📝 Aggiungi al Diario
           </h1>
 
@@ -179,7 +179,7 @@ function CreateLettura() {
                   name="stato"
                   value={formData.stato}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="da_iniziare">Da iniziare</option>
                   <option value="in_corso">In corso</option>
@@ -205,7 +205,7 @@ function CreateLettura() {
                     className={`w-full px-3 py-2 border rounded-md transition-all ${
                       formData.stato === "da_iniziare" 
                         ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400" 
-                        : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-blue-500"
                     }`}
                   />
                 </div>
@@ -232,7 +232,7 @@ function CreateLettura() {
                 value={formData.note}
                 onChange={handleChange}
                 rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Aggiungi un commento..."
               />
             </div>
@@ -241,7 +241,7 @@ function CreateLettura() {
               <button type="button" onClick={() => navigate("/listletture")} className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-bold">
                 Annulla
               </button>
-              <button type="submit" disabled={loading || !idUtente} className="flex-2 py-3 px-4 bg-indigo-600 text-white rounded-lg font-bold shadow-lg disabled:bg-indigo-300 transition">
+              <button type="submit" disabled={loading || !idUtente} className="flex-2 py-3 px-4 bg-blue-600 text-white rounded-lg font-bold shadow-lg disabled:bg-blue-300 transition">
                 {loading ? "Salvataggio..." : "Salva nel Diario"}
               </button>
             </div>

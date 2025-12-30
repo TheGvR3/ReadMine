@@ -111,7 +111,7 @@ function LetturaDetail() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
     );
@@ -124,7 +124,7 @@ function LetturaDetail() {
           <p className="text-red-600 font-bold">{error}</p>
           <button
             onClick={() => navigate("/listletture")}
-            className="mt-4 text-indigo-600 underline"
+            className="mt-4 text-blue-600 underline"
           >
             Torna alla lista
           </button>
@@ -200,25 +200,25 @@ function LetturaDetail() {
               </div>
             </div>
 
-            <div className="bg-indigo-900 rounded-3xl p-8 text-white flex justify-around items-center shadow-xl">
+            <div className="bg-gray-50 rounded-3xl p-8 text-white flex justify-around items-center shadow-xl">
               <div className="text-center">
-                <p className="text-indigo-300 text-xs font-bold uppercase mb-1">
+                <p className="text-blue-300 text-xs font-bold uppercase mb-1">
                   Volume
                 </p>
                 <p className="text-4xl font-black">{lettura.volume ?? "--"}</p>
               </div>
-              <div className="h-12 w-px bg-indigo-700"></div>
+              <div className="h-12 w-px bg-blue-700"></div>
               <div className="text-center">
-                <p className="text-indigo-300 text-xs font-bold uppercase mb-1">
+                <p className="text-blue-300 text-xs font-bold uppercase mb-1">
                   Capitolo
                 </p>
                 <p className="text-4xl font-black">
                   {lettura.capitolo ?? "--"}
                 </p>
               </div>
-              <div className="h-12 w-px bg-indigo-700"></div>
+              <div className="h-12 w-px bg-blue-700"></div>
               <div className="text-center">
-                <p className="text-indigo-300 text-xs font-bold uppercase mb-1">
+                <p className="text-blue-300 text-xs font-bold uppercase mb-1">
                   Pagina
                 </p>
                 <p className="text-4xl font-black">{lettura.pagina ?? "--"}</p>
@@ -255,7 +255,7 @@ function LetturaDetail() {
         <div className="mt-12 text-center">
           <Link
             to="/listletture"
-            className="text-indigo-600 font-bold hover:underline flex items-center justify-center gap-2"
+            className="text-blue-600 font-bold hover:underline flex items-center justify-center gap-2"
           >
             ← Torna alla lista completa
           </Link>
