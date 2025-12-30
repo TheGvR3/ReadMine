@@ -24,8 +24,7 @@ function ListLetture() {
           navigate
         );
 
-        if (!resUser || !resUser.ok)
-          throw new Error("Errore nel recupero profilo");
+        if (!resUser || !resUser.ok) throw new Error("Errore nel recupero profilo");
         const userData = await resUser.json();
         const currentUserId = userData.id || userData.id_utente;
 
@@ -53,7 +52,6 @@ function ListLetture() {
     loadAllData();
   }, [navigate]);
 
-  // --- LOGICA PAGINAZIONE ---
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentLetture = letture.slice(indexOfFirst, indexOfLast);
@@ -62,14 +60,16 @@ function ListLetture() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 pt-10 pb-10">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
-            📖 Il Mio Diario di Lettura
+      <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
+        
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 text-center sm:text-left">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-indigo-900 tracking-tight">
+            📖 Diario di Lettura
           </h1>
           <Link
             to="/createlettura"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-full font-bold shadow-md transition-all transform hover:scale-105"
+            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all text-center"
           >
             + Aggiungi Opera
           </Link>
@@ -82,97 +82,78 @@ function ListLetture() {
         )}
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-red-700 font-medium">
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-red-700 font-medium rounded-r-lg">
             {error}
           </div>
         )}
 
         {!loading && letture.length === 0 && !error && (
-          <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
-            <p className="text-gray-500 text-xl">
-              Il tuo diario è vuoto. Inizia a leggere qualcosa!
-            </p>
-            <Link
-              to="/createlettura"
-              className="text-indigo-600 font-bold hover:underline mt-4 inline-block"
-            >
-              Aggiungi la tua prima lettura
+          <div className="text-center py-20 bg-white rounded-2xl shadow-sm border-2 border-dashed border-gray-200">
+            <p className="text-gray-500 text-lg">Il tuo diario è ancora vuoto.</p>
+            <Link to="/createlettura" className="text-indigo-600 font-bold hover:underline mt-2 inline-block">
+              Registra la tua prima lettura
             </Link>
           </div>
         )}
 
         {!loading && letture.length > 0 && (
-          <div className="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100">
+          <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead className="bg-indigo-50">
+                <thead className="bg-indigo-50 hidden md:table-header-group">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">
-                      Opera
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">
-                      Stato
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">
-                      Progresso
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-bold uppercase text-indigo-700 tracking-wider">
-                      Azioni
-                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">Opera</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">Stato</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold uppercase text-indigo-700 tracking-wider">Progresso</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {currentLetture.map((l) => (
                     <tr
                       key={l.id_lettura}
-                      className="hover:bg-indigo-50/30 transition-colors group"
+                      onClick={() => navigate(`/lettura/${l.id_lettura}`)}
+                      className="flex flex-col md:table-row hover:bg-indigo-50/50 transition-colors cursor-pointer group"
                     >
-                      {/* Cliccando si va al DETTAGLIO */}
-                      <Link
-                        to={`/lettura/${l.id_lettura}`}
-                        className="block group-hover:translate-x-1 transition-transform"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                      {/* OPERA */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors text-lg md:text-base">
                             {l.opere?.titolo}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {l.opere?.editore || "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-bold ${
-                              l.stato === "finito"
-                                ? "bg-green-100 text-green-700"
-                                : l.stato === "in_corso"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {l.stato.replace("_", " ")}
                           </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-700">
-                            {l.volume && (
-                              <span className="mr-2">
-                                Vol. <strong>{l.volume}</strong>
-                              </span>
-                            )}
-                            {l.capitolo && (
-                              <span>
-                                Cap. <strong>{l.capitolo}</strong>
-                              </span>
-                            )}
-                            {!l.volume && !l.capitolo && (
-                              <span className="text-gray-400 italic font-light">
-                                Nessun dato
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                      </Link>
+                          <span className="text-xs text-gray-500 uppercase tracking-wide">
+                            {l.opere?.editore || "N/A"}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* STATO */}
+                      <td className="px-6 py-2 md:py-4">
+                        <span
+                          className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                            l.stato === "finito"
+                              ? "bg-green-100 text-green-700"
+                              : l.stato === "in_corso"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {l.stato.replace("_", " ")}
+                        </span>
+                      </td>
+
+                      {/* PROGRESSO */}
+                      <td className="px-6 py-4 md:py-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-3">
+                          {l.volume || l.capitolo ? (
+                            <>
+                              {l.volume && <span>Vol. <strong>{l.volume}</strong></span>}
+                              {l.capitolo && <span>Cap. <strong>{l.capitolo}</strong></span>}
+                            </>
+                          ) : (
+                            <span className="text-gray-400 italic">Inizio diario...</span>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -181,26 +162,28 @@ function ListLetture() {
           </div>
         )}
 
-        {/* Paginazione */}
+        {/* PAGINAZIONE RESPONSIVE */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-6 mt-10">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-              className="px-5 py-2 rounded-lg bg-white border border-gray-300 shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-all font-semibold text-gray-700"
-            >
-              ← Precedente
-            </button>
-            <span className="text-gray-600 font-medium">
-              Pagina {currentPage} di {totalPages}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-10">
+            <div className="flex gap-4 order-2 sm:order-1">
+                <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                className="px-6 py-2 rounded-xl bg-white border border-gray-300 shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-all font-bold text-gray-700"
+                >
+                ←
+                </button>
+                <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                className="px-6 py-2 rounded-xl bg-white border border-gray-300 shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-all font-bold text-gray-700"
+                >
+                →
+                </button>
+            </div>
+            <span className="text-gray-500 font-medium order-1 sm:order-2">
+              Pagina <strong>{currentPage}</strong> di {totalPages}
             </span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-              className="px-5 py-2 rounded-lg bg-white border border-gray-300 shadow-sm disabled:opacity-30 hover:bg-gray-50 transition-all font-semibold text-gray-700"
-            >
-              Successiva →
-            </button>
           </div>
         )}
       </div>
