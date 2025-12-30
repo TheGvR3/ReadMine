@@ -26,7 +26,7 @@ function LetturaDetail() {
       setError("");
 
       const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/letture/dettaglio/${id_lettura}`,
+        `${import.meta.env.VITE_API_BASE_URL}/letture/${id_lettura}`,
         { method: "GET" },
         navigate
       );

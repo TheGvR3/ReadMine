@@ -111,7 +111,7 @@ function ListLetture() {
                     <tr key={l.id_lettura} className="hover:bg-indigo-50/30 transition-colors group">
                       <td className="px-6 py-4">
                         {/* Cliccando sul titolo si va al DETTAGLIO */}
-                        <Link to={`/letturadetail/${l.id_lettura}`} className="block group-hover:translate-x-1 transition-transform">
+                        <Link to={`/lettura/${l.id_lettura}`} className="block group-hover:translate-x-1 transition-transform">
                           <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
                             {l.opere?.titolo}
                           </div>
@@ -136,7 +136,7 @@ function ListLetture() {
                       <td className="px-6 py-4 text-right">
                         {/* Pulsante per il DETTAGLIO */}
                         <Link 
-                          to={`/letturadetail/${l.id_lettura}`}
+                          to={`/lettura/${l.id_lettura}`}
                           className="text-indigo-600 px-4 py-1 rounded-md text-sm font-bold hover:underline"
                         >
                           Dettagli →
