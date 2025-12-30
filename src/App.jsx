@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 
 // import delle pagine
+import LandingPage from "./LandingPage";
 // Autenticazione
 import LoginPage from "./features/auth/Login";
 import RegisterPage from "./features/auth/Register";
@@ -62,11 +63,16 @@ function App() {
             Se l'utente visita "/", viene automaticamente reindirizzato a "/login".
             replace = true evita che "/" rimanga nella cronologia del browser.
            --------------------------------------------------------------------- */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/landing" replace />} />
 
         {/* ---------------------------------------------------------------------
             ROTTE PUBBLICHE
             Accessibili senza autenticazione.
+            --------------------------------------------------------------------- */}
+        <Route path="/landing" element={<LandingPage />} />
+
+        {/* ---------------------------------------------------------------------
+            Rotte per
             Login e Registrazione.
            --------------------------------------------------------------------- */}
         <Route path="/login" element={<LoginPage />} />
