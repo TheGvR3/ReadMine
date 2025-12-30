@@ -5,6 +5,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 
 function CreateAutore() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
   const [nomeAutore, setNomeAutore] = useState("");
   const [loading, setLoading] = useState(false);

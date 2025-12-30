@@ -6,6 +6,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 function UpdateLettura() {
   const { id_lettura } = useParams();
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
   const [formData, setFormData] = useState({
     data_lettura: "",
@@ -39,23 +40,23 @@ function UpdateLettura() {
         if (resLettura && resLettura.ok) {
           const letturaData = await resLettura.json();
           const idOpera = letturaData.id_opera || letturaData.opere?.id_opera;
-          
+
           if (idOpera) {
             const resOpera = await secureFetch(
               `${import.meta.env.VITE_API_BASE_URL}/opere/${idOpera}`,
               { method: "GET" },
               navigate
             );
-            
+
             if (resOpera && resOpera.ok) {
               const detailedOpera = await resOpera.json();
               setObraInfo(detailedOpera);
 
               const checkIsLibro = detailedOpera.id_tipo === 1;
-              
+
               setFormData({
                 data_lettura: letturaData.data_lettura || "",
-                volume: checkIsLibro ? "" : (letturaData.volume ?? ""),
+                volume: checkIsLibro ? "" : letturaData.volume ?? "",
                 capitolo: letturaData.capitolo ?? "",
                 pagina: letturaData.pagina ?? "",
                 stato: letturaData.stato || "da_iniziare",
@@ -100,13 +101,25 @@ function UpdateLettura() {
 
     const dataToSend = {
       data_lettura: formData.data_lettura || null,
-      volume: (isActuallyDaIniziare || isLibro)
+      volume:
+        isActuallyDaIniziare || isLibro
+          ? null
+          : formData.volume !== ""
+          ? parseInt(formData.volume, 10)
+          : null,
+      capitolo: isActuallyDaIniziare
         ? null
-        : formData.volume !== "" ? parseInt(formData.volume, 10) : null,
-      capitolo: isActuallyDaIniziare ? null : formData.capitolo !== "" ? parseInt(formData.capitolo, 10) : null,
-      pagina: isActuallyDaIniziare ? null : formData.pagina !== "" ? parseInt(formData.pagina, 10) : null,
+        : formData.capitolo !== ""
+        ? parseInt(formData.capitolo, 10)
+        : null,
+      pagina: isActuallyDaIniziare
+        ? null
+        : formData.pagina !== ""
+        ? parseInt(formData.pagina, 10)
+        : null,
       stato: formData.stato || null,
-      valutazione: formData.valutazione !== "" ? parseInt(formData.valutazione, 10) : null,
+      valutazione:
+        formData.valutazione !== "" ? parseInt(formData.valutazione, 10) : null,
       note: formData.note || null,
     };
 
@@ -130,11 +143,16 @@ function UpdateLettura() {
     setLoading(false);
   };
 
-  if (dataLoading) return <div className="text-center mt-10 text-gray-500 italic">Caricamento in corso...</div>;
+  if (dataLoading)
+    return (
+      <div className="text-center mt-10 text-gray-500 italic">
+        Caricamento in corso...
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar setUser={setUser} setError={setError} />
       <div className="flex justify-center items-center py-12 px-4">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg border border-gray-100">
           <h1 className="text-2xl font-bold mb-2 text-center text-gray-800">
@@ -151,13 +169,23 @@ function UpdateLettura() {
             </p>
           )}
 
-          {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">{error}</div>}
-          {successMessage && <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">{successMessage}</div>}
+          {error && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">
+              {error}
+            </div>
+          )}
+          {successMessage && (
+            <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">
+              {successMessage}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Stato</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">
+                  Stato
+                </label>
                 <select
                   name="stato"
                   value={formData.stato}
@@ -171,7 +199,9 @@ function UpdateLettura() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Data</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">
+                  Data
+                </label>
                 <input
                   type="date"
                   name="data_lettura"
@@ -185,12 +215,22 @@ function UpdateLettura() {
             <div className="grid grid-cols-3 gap-4">
               {["volume", "capitolo", "pagina"].map((field) => {
                 const isFieldVolume = field === "volume";
-                const isDisabled = formData.stato === "da_iniziare" || (isLibro && isFieldVolume);
+                const isDisabled =
+                  formData.stato === "da_iniziare" ||
+                  (isLibro && isFieldVolume);
 
                 return (
                   <div key={field}>
-                    <label className={`block text-xs font-bold uppercase ${isDisabled ? "text-gray-400" : "text-gray-500"}`}>
-                      {field === "volume" ? "Vol." : field === "capitolo" ? "Cap." : "Pag."}
+                    <label
+                      className={`block text-xs font-bold uppercase ${
+                        isDisabled ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {field === "volume"
+                        ? "Vol."
+                        : field === "capitolo"
+                        ? "Cap."
+                        : "Pag."}
                     </label>
                     <input
                       type="number"
@@ -212,7 +252,9 @@ function UpdateLettura() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Valutazione</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                Valutazione
+              </label>
               <select
                 name="valutazione"
                 value={formData.valutazione}
@@ -220,12 +262,18 @@ function UpdateLettura() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Nessun voto</option>
-                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n} ⭐</option>)}
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    {n} ⭐
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Note</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                Note
+              </label>
               <textarea
                 name="note"
                 value={formData.note}

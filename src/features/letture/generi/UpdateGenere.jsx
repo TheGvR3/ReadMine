@@ -6,7 +6,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 function UpdateGenere() {
   const { id_genere } = useParams();
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [nomeGenere, setNomeGenere] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true); // Caricamento iniziale

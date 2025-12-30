@@ -6,7 +6,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 function UpdateAutore() {
   const { id_autore } = useParams();
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [nomeAutore, setNomeAutore] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true); // Per il caricamento iniziale del dato

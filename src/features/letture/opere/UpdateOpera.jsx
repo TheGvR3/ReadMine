@@ -6,6 +6,7 @@ import Navbar from "../../../components/Navbar";
 import { secureFetch } from "../../../utils/secureFetch";
 
 function UpdateOpera() {
+  const [user, setUser] = useState(null);
   // --- 1. HOOKS E VARIABILI DI ROUTING ---
   // Estraiamo l'ID dell'opera dall'URL (es. /update-opera/15 -> id_opera = 15)
   const { id_opera } = useParams();

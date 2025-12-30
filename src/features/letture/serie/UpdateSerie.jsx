@@ -6,7 +6,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 function UpdateSerie() {
   const { id_serie } = useParams(); // Prende l'id dall'URL
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [nomeSerie, setNomeSerie] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true); // Stato per il caricamento iniziale

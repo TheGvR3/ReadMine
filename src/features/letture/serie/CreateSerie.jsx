@@ -5,7 +5,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 
 function CreateSerie() {
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [nomeSerie, setNomeSerie] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -5,7 +5,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 
 function CreateGenere() {
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [nomeGenere, setNomeGenere] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,11 +56,11 @@ function CreateGenere() {
   };
 
   // ---------------------------------------------------------------------------
-  // RENDER 
+  // RENDER
   // ---------------------------------------------------------------------------
   return (
     <div>
-<Navbar setUser={setUser} setError={setError} />
+      <Navbar setUser={setUser} setError={setError} />
       <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
         <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
           <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">
@@ -72,7 +72,7 @@ function CreateGenere() {
               {error}
             </div>
           )}
-          
+
           {successMessage && (
             <p className="text-green-600 text-center mb-4 font-bold">
               {successMessage}
@@ -82,7 +82,9 @@ function CreateGenere() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* NOME GENERE */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nome Genere *</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Nome Genere *
+              </label>
               <input
                 type="text"
                 value={nomeGenere}

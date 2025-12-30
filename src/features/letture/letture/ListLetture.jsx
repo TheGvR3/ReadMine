@@ -9,7 +9,7 @@ function ListLetture() {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const { categoria } = useParams(); // Recupera "libri", "manga" o "riviste" dall'URL
@@ -98,7 +98,7 @@ function ListLetture() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar setUser={setUser} setError={setError} />
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
         {/* HEADER - Sempre visibile anche durante il loading */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">

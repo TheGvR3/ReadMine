@@ -5,6 +5,7 @@ import { secureFetch } from "../../utils/secureFetch";
 
 function UpdateProfileData() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     email: "",
     nome: "",

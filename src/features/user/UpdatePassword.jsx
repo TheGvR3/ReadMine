@@ -5,6 +5,7 @@ import { secureFetch } from "../../utils/secureFetch";
 
 function UpdatePassword() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [passwords, setPasswords] = useState({
     oldPassword: "",
     newPassword: "",

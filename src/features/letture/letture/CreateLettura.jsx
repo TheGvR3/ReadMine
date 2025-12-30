@@ -8,7 +8,7 @@ function CreateLettura() {
   const navigate = useNavigate();
   const location = useLocation();
   const preSelectedOpera = location.state;
-
+  const [user, setUser] = useState(null);
   const [idUtente, setIdUtente] = useState(null);
   const [selectedOperaDetails, setSelectedOperaDetails] = useState(
     preSelectedOpera || null
@@ -180,7 +180,7 @@ function CreateLettura() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar setUser={setUser} setError={setError} />
       <div className="flex justify-center items-center py-12 px-4">
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg border border-gray-100">
           <h1 className="text-2xl font-bold mb-6 text-center text-blue-800">

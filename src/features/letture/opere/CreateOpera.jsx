@@ -5,6 +5,7 @@ import Navbar from "../../../components/Navbar";
 import { secureFetch } from "../../../utils/secureFetch";
 
 function CreateOpera() {
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({

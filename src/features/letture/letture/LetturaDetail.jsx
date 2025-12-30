@@ -6,7 +6,7 @@ import { secureFetch } from "../../../utils/secureFetch";
 function LetturaDetail() {
   const { id_lettura } = useParams();
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
   const [lettura, setLettura] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -109,7 +109,7 @@ function LetturaDetail() {
   if (loading)
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+      <Navbar setUser={setUser} setError={setError} />
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
@@ -205,7 +205,9 @@ function LetturaDetail() {
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Volume
                 </p>
-                <p className="text-4xl font-black text-gray-800">{lettura.volume ?? "--"}</p>
+                <p className="text-4xl font-black text-gray-800">
+                  {lettura.volume ?? "--"}
+                </p>
               </div>
               <div className="h-12 w-px bg-gray-300"></div>
               <div className="text-center">
@@ -221,7 +223,9 @@ function LetturaDetail() {
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Pagina
                 </p>
-                <p className="text-4xl font-black text-gray-800">{lettura.pagina ?? "--"}</p>
+                <p className="text-4xl font-black text-gray-800">
+                  {lettura.pagina ?? "--"}
+                </p>
               </div>
             </div>
 
