@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AsyncSelect from "react-select/async";
 import Navbar from "../../../components/Navbar";
@@ -7,13 +7,12 @@ import { secureFetch } from "../../../utils/secureFetch";
 function CreateLettura() {
   const navigate = useNavigate();
 
-  // Recupero l'utente dal localStorage
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  const id_utente = storedUser?.id;
+  // Stato per l'ID utente recuperato dal token
+  const [idUtente, setIdUtente] = useState(null);
 
   const [formData, setFormData] = useState({
     id_opera: null,
-    data_lettura: new Date().toISOString().split('T')[0], // Default a oggi
+    data_lettura: new Date().toISOString().split('T')[0],
     volume: "",
     capitolo: "",
     pagina: "",
@@ -26,12 +25,30 @@ function CreateLettura() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ---------------------------------------------------------------------------
-  // RICERCA OPERE (per selezionare cosa aggiungere al diario)
-  // ---------------------------------------------------------------------------
+  // 1. RECUPERO ID UTENTE DAL PROFILO (usando il token)
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const response = await secureFetch(
+        `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
+        { method: "GET" },
+        navigate
+      );
+      
+      if (response && response.ok) {
+        const data = await response.json();
+        // Adatta 'id_utente' o 'id' in base a come risponde il tuo server
+        setIdUtente(data.id_utente || data.id);
+      } else {
+        setError("Sessione scaduta o utente non trovato. Effettua nuovamente il login.");
+      }
+    };
+
+    fetchUserId();
+  }, [navigate]);
+
+  // 2. RICERCA OPERE
   const loadOpereOptions = async (inputValue) => {
     if (!inputValue) return [];
-
     const response = await secureFetch(
       `${import.meta.env.VITE_API_BASE_URL}/opere/search/${inputValue}`,
       { method: "GET" },
@@ -47,9 +64,6 @@ function CreateLettura() {
     }));
   };
 
-  // ---------------------------------------------------------------------------
-  // GESTORI EVENTI
-  // ---------------------------------------------------------------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -62,14 +76,12 @@ function CreateLettura() {
     }));
   };
 
-  // ---------------------------------------------------------------------------
-  // SUBMIT FORM
-  // ---------------------------------------------------------------------------
+  // 3. SUBMIT FORM
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!id_utente) {
-      setError("Devi aver effettuato il login.");
+    if (!idUtente) {
+      setError("Impossibile identificare l'utente. Riprova.");
       return;
     }
 
@@ -82,7 +94,7 @@ function CreateLettura() {
     setError("");
 
     const dataToSend = {
-      id_utente: id_utente,
+      id_utente: idUtente, // Usiamo l'ID recuperato dallo stato
       id_opera: formData.id_opera,
       data_lettura: formData.data_lettura || null,
       volume: formData.volume ? parseInt(formData.volume, 10) : null,
@@ -104,155 +116,124 @@ function CreateLettura() {
     );
 
     if (response && response.ok) {
-      setSuccessMessage("Lettura aggiunta al diario!");
+      setSuccessMessage("Lettura aggiunta con successo!");
       setTimeout(() => navigate("/listletture"), 1500);
     } else {
       const err = await response.json().catch(() => ({}));
       setError(err.error || "Errore durante il salvataggio.");
     }
-
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-
-      <div className="flex justify-center items-center py-10 px-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
-            Aggiungi al Diario
+      <div className="flex justify-center items-center py-12 px-4">
+        <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg border border-gray-100">
+          <h1 className="text-2xl font-bold mb-6 text-center text-indigo-800">
+            📝 Aggiungi al Diario
           </h1>
 
-          {error && <p className="text-red-500 text-center mb-4 font-medium">{error}</p>}
-          {successMessage && (
-            <p className="text-green-600 text-center mb-4 font-bold">{successMessage}</p>
-          )}
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">{error}</div>}
+          {successMessage && <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">{successMessage}</div>}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* RICERCA OPERA */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Cerca Opera *</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Cerca Opera *</label>
               <AsyncSelect
                 cacheOptions
                 loadOptions={loadOpereOptions}
                 onChange={handleSelectOpera}
-                placeholder="Digita il titolo dell'opera..."
-                className="mt-1"
+                placeholder="Esempio: Naruto, One Piece..."
                 isClearable
+                noOptionsMessage={() => "Nessuna opera trovata"}
+                loadingMessage={() => "Ricerca in corso..."}
               />
             </div>
 
-            {/* DATA E STATO */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700">Data Lettura</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Data</label>
                 <input
                   type="date"
                   name="data_lettura"
                   value={formData.data_lettura}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700">Stato</label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Stato</label>
                 <select
                   name="stato"
                   value={formData.stato}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
                 >
                   <option value="da_iniziare">Da iniziare</option>
                   <option value="in_corso">In corso</option>
                   <option value="finito">Finito</option>
+                  <option value="abbandonato">Abbandonato</option>
                 </select>
               </div>
             </div>
 
-            {/* PROGRESSO (Volume, Capitolo, Pagina) */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700">Volume</label>
-                <input
-                  type="number"
-                  name="volume"
-                  value={formData.volume}
-                  onChange={handleChange}
-                  placeholder="Es: 1"
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase">Vol.</label>
+                <input type="number" name="volume" value={formData.volume} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700">Capitolo</label>
-                <input
-                  type="number"
-                  name="capitolo"
-                  value={formData.capitolo}
-                  onChange={handleChange}
-                  placeholder="Es: 12"
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase">Cap.</label>
+                <input type="number" name="capitolo" value={formData.capitolo} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700">Pagina</label>
-                <input
-                  type="number"
-                  name="pagina"
-                  value={formData.pagina}
-                  onChange={handleChange}
-                  placeholder="Es: 200"
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
-                />
+                <label className="block text-xs font-bold text-gray-500 uppercase">Pag.</label>
+                <input type="number" name="pagina" value={formData.pagina} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
               </div>
             </div>
 
-            {/* VALUTAZIONE */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Valutazione (1-5)</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Valutazione</label>
               <select
                 name="valutazione"
                 value={formData.valutazione}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
               >
                 <option value="">Nessun voto</option>
-                <option value="1">1 ⭐ (Scarso)</option>
-                <option value="2">2 ⭐ (Sufficiente)</option>
-                <option value="3">3 ⭐ (Buono)</option>
-                <option value="4">4 ⭐ (Ottimo)</option>
-                <option value="5">5 ⭐ (Capolavoro)</option>
+                {[1, 2, 3, 4, 5].map(v => (
+                  <option key={v} value={v}>{v} ⭐</option>
+                ))}
               </select>
             </div>
 
-            {/* NOTE */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700">Note personali</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Note</label>
               <textarea
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
                 rows="3"
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                placeholder="Cosa ne pensi?"
-              ></textarea>
+                className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Aggiungi un commento..."
+              />
             </div>
 
-            {/* PULSANTI */}
-            <div className="flex gap-4 pt-4">
+            <div className="flex gap-4 pt-2">
               <button
                 type="button"
                 onClick={() => navigate("/listletture")}
-                className="w-1/3 py-2 px-4 bg-gray-400 text-white rounded-md hover:bg-gray-500 font-bold transition-colors"
+                className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-bold"
               >
-                Indietro
+                Annulla
               </button>
               <button
                 type="submit"
-                disabled={loading}
-                className="w-2/3 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-bold shadow-md transition-colors"
+                disabled={loading || !idUtente}
+                className="flex-2 py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300 transition font-bold shadow-lg"
               >
-                {loading ? "Salvataggio..." : "Salva nel diario"}
+                {loading ? "Salvataggio..." : "Salva nel Diario"}
               </button>
             </div>
           </form>
