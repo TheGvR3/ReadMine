@@ -5,36 +5,42 @@ import Navbar from "../../components/Navbar";
 
 function EditorRequests() {
   const [requests, setRequests] = useState([]);
+  const [history, setHistory] = useState([]); // Stato per lo storico
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchRequests();
+    fetchAllData();
   }, []);
 
+  const fetchAllData = async () => {
+    setLoading(true);
+    await Promise.all([fetchRequests(), fetchHistory()]);
+    setLoading(false);
+  };
+
   const fetchRequests = async () => {
-    setError("");
-    setLoading(true); // Assicuriamoci che lo stato di loading sia attivo
+    const response = await secureFetch(
+      `${import.meta.env.VITE_API_BASE_URL}/users/editorrequestslist`,
+      { method: "GET" },
+      navigate
+    );
+    if (response && response.ok) {
+      const data = await response.json();
+      setRequests(Array.isArray(data) ? data : []);
+    }
+  };
 
-    try {
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/users/editorrequestslist`,
-        { method: "GET" },
-        navigate
-      );
-
-      if (response && response.ok) {
-        const data = await response.json();
-        // Verifichiamo che data sia effettivamente un array prima di settarlo
-        setRequests(Array.isArray(data) ? data : []);
-      } else {
-        setError("Errore nel caricamento dei dati dal server.");
-      }
-    } catch (err) {
-      setError("Errore di connessione.");
-    } finally {
-      setLoading(false);
+  const fetchHistory = async () => {
+    const response = await secureFetch(
+      `${import.meta.env.VITE_API_BASE_URL}/users/editorrequestshistory`,
+      { method: "GET" },
+      navigate
+    );
+    if (response && response.ok) {
+      const data = await response.json();
+      setHistory(Array.isArray(data) ? data : []);
     }
   };
 
@@ -51,15 +57,15 @@ function EditorRequests() {
     );
 
     if (response && response.ok) {
-      // Rimuoviamo la richiesta dalla lista locale dopo l'azione (modifica o rifiuto)
-      setRequests((prev) => prev.filter((req) => req.id !== requestId));
+      // Aggiorniamo entrambe le liste dopo la <span style="color: blue;">modifica</span>
+      await fetchAllData();
     } else {
       setError("Errore durante l'elaborazione della richiesta.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar setError={setError} />
 
       <div className="max-w-5xl mx-auto px-4 py-10">
@@ -67,10 +73,6 @@ function EditorRequests() {
           <h1 className="text-3xl font-extrabold text-gray-900">
             Gestione Richieste Editor
           </h1>
-          <p className="text-gray-600 mt-2">
-            Approva o rifiuta le richieste degli utenti per ottenere i permessi
-            di scrittura.
-          </p>
         </header>
 
         {error && (
@@ -79,87 +81,122 @@ function EditorRequests() {
           </div>
         )}
 
-        {loading ? (
-          <div className="flex justify-center py-10">
-            <p className="text-gray-500 animate-pulse">
-              Caricamento richieste...
-            </p>
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-200 text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-300 mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-gray-500 text-lg">
-              Ottimo lavoro! Non ci sono richieste in sospeso.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Utente
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Data Richiesta
-                  </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Azioni
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {requests.map((req) => (
-                  <tr
-                    key={req.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {req.users?.nome} {req.users?.cognome}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {req.users?.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                      {new Date(req.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                      <div className="flex justify-center gap-3">
+        {/* --- SEZIONE RICHIESTE IN SOSPESO --- */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center">
+            <span className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></span> In
+            Sospeso
+          </h2>
+          {loading ? (
+            <p className="text-gray-500">Caricamento...</p>
+          ) : requests.length === 0 ? (
+            <div className="bg-white p-6 rounded-xl border border-gray-200 text-gray-500">
+              Nessuna richiesta in sospeso.
+            </div>
+          ) : (
+            <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                      Utente
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                      Azioni
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {requests.map((req) => (
+                    <tr key={req.id}>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {req.users?.nome} {req.users?.cognome}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {req.users?.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
                         <button
                           onClick={() => handleAction(req.id, "approved")}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none transition-colors"
+                          className="px-3 py-1 bg-green-600 text-white rounded text-xs font-bold mr-2"
                         >
                           Accetta
                         </button>
                         <button
                           onClick={() => handleAction(req.id, "rejected")}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none transition-colors"
+                          className="px-3 py-1 bg-red-600 text-white rounded text-xs font-bold"
                         >
                           Rifiuta
                         </button>
-                      </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* --- SEZIONE STORICO (HISTORY) --- */}
+        <section>
+          <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center">
+            <span className="w-3 h-3 bg-gray-400 rounded-full mr-2"></span>{" "}
+            Storico Richieste
+          </h2>
+          <div className="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                    Utente
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">
+                    Stato
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">
+                    Data
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {history.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="3"
+                      className="px-6 py-4 text-center text-gray-400 text-sm"
+                    >
+                      Nessuna operazione nello storico.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  history.map((req) => (
+                    <tr key={req.id} className="bg-gray-50/30">
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {req.users?.email}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {req.status === "approved" ? (
+                          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            APPROVATA
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded">
+                            RIFIUTATA
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right text-xs text-gray-400">
+                        {new Date(req.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        )}
+        </section>
       </div>
     </div>
   );
