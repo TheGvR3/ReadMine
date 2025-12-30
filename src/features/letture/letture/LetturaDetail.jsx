@@ -205,14 +205,14 @@ function LetturaDetail() {
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Volume
                 </p>
-                <p className="text-4xl font-black">{lettura.volume ?? "--"}</p>
+                <p className="text-4xl font-black text-gray-800">{lettura.volume ?? "--"}</p>
               </div>
               <div className="h-12 w-px bg-gray-300"></div>
               <div className="text-center">
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Capitolo
                 </p>
-                <p className="text-4xl font-black">
+                <p className="text-4xl font-black text-gray-800">
                   {lettura.capitolo ?? "--"}
                 </p>
               </div>
@@ -221,7 +221,7 @@ function LetturaDetail() {
                 <p className="text-gray-400 text-xs font-bold uppercase mb-1">
                   Pagina
                 </p>
-                <p className="text-4xl font-black">{lettura.pagina ?? "--"}</p>
+                <p className="text-4xl font-black text-gray-800">{lettura.pagina ?? "--"}</p>
               </div>
             </div>
 
