@@ -8,12 +8,9 @@ function CreateLettura() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Recupera i dati passati tramite navigate (se esistono)
   const preSelectedOpera = location.state;
 
-  // Stato per l'ID utente recuperato dal token
   const [idUtente, setIdUtente] = useState(null);
-
   const [formData, setFormData] = useState({
     id_opera: preSelectedOpera?.id_opera || null,
     data_lettura: new Date().toISOString().split("T")[0],
@@ -25,7 +22,6 @@ function CreateLettura() {
     note: "",
   });
 
-  // Stato aggiuntivo per gestire il valore visualizzato in AsyncSelect
   const [selectedOperaValue, setSelectedOperaValue] = useState(
     preSelectedOpera 
       ? { value: preSelectedOpera.id_opera, label: `${preSelectedOpera.titolo} (${preSelectedOpera.editore || "N/A"})` }
@@ -36,7 +32,10 @@ function CreateLettura() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // 1. RECUPERO ID UTENTE DAL PROFILO (usando il token)
+  // --- LOGICA AGGIUNTA ---
+  // Variabile booleana per controllare se lo stato è "da_iniziare"
+  const isDaIniziare = formData.stato === "da_iniziare";
+
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -48,7 +47,6 @@ function CreateLettura() {
 
         if (response && response.ok) {
           const data = await response.json();
-          console.log("Dati profilo ricevuti:", data);
           const finalId = data.id || data.id_utente;
           if (finalId) {
             setIdUtente(finalId);
@@ -63,7 +61,6 @@ function CreateLettura() {
     fetchUserId();
   }, [navigate]);
 
-  // 2. RICERCA OPERE
   const loadOpereOptions = async (inputValue) => {
     if (!inputValue) return [];
     const response = await secureFetch(
@@ -83,7 +80,19 @@ function CreateLettura() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    setFormData((prev) => {
+      const updatedData = { ...prev, [name]: value };
+
+      // Se l'utente seleziona "Da iniziare", resetta i campi numerici a stringa vuota
+      if (name === "stato" && value === "da_iniziare") {
+        updatedData.volume = "";
+        updatedData.capitolo = "";
+        updatedData.pagina = "";
+      }
+      
+      return updatedData;
+    });
   };
 
   const handleSelectOpera = (selectedOption) => {
@@ -94,11 +103,8 @@ function CreateLettura() {
     }));
   };
 
-  // 3. SUBMIT FORM
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Log di debug per vedere cosa stai inviando
-    console.log("ID UTENTE STATO:", idUtente);
 
     if (!idUtente) {
       setError("Impossibile identificare l'utente. Riprova.");
@@ -113,17 +119,17 @@ function CreateLettura() {
     setLoading(true);
     setError("");
 
+    // --- LOGICA AGGIUNTA ---
+    // Nel dataToSend forziamo null se lo stato è "da_iniziare"
     const dataToSend = {
-      id_utente: parseInt(idUtente, 10), // Forza a numero intero
+      id_utente: parseInt(idUtente, 10),
       id_opera: formData.id_opera,
       data_lettura: formData.data_lettura || null,
-      volume: formData.volume ? parseInt(formData.volume, 10) : null,
-      capitolo: formData.capitolo ? parseInt(formData.capitolo, 10) : null,
-      pagina: formData.pagina ? parseInt(formData.pagina, 10) : null,
+      volume: isDaIniziare ? null : (formData.volume ? parseInt(formData.volume, 10) : null),
+      capitolo: isDaIniziare ? null : (formData.capitolo ? parseInt(formData.capitolo, 10) : null),
+      pagina: isDaIniziare ? null : (formData.pagina ? parseInt(formData.pagina, 10) : null),
       stato: formData.stato,
-      valutazione: formData.valutazione
-        ? parseInt(formData.valutazione, 10)
-        : null,
+      valutazione: formData.valutazione ? parseInt(formData.valutazione, 10) : null,
       note: formData.note || null,
     };
 
@@ -131,10 +137,8 @@ function CreateLettura() {
       `${import.meta.env.VITE_API_BASE_URL}/letture`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json", // FONDAMENTALE
-        },
-        body: JSON.stringify(dataToSend), // Deve essere una stringa JSON
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataToSend),
       },
       navigate
     );
@@ -188,9 +192,7 @@ function CreateLettura() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Data
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Data</label>
                 <input
                   type="date"
                   name="data_lettura"
@@ -200,9 +202,7 @@ function CreateLettura() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Stato
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Stato</label>
                 <select
                   name="stato"
                   value={formData.stato}
@@ -217,9 +217,10 @@ function CreateLettura() {
               </div>
             </div>
 
+            {/* --- INPUT AGGIORNATI CON DISABLED --- */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase">
+                <label className={`block text-xs font-bold uppercase ${isDaIniziare ? 'text-gray-400' : 'text-gray-500'}`}>
                   Vol.
                 </label>
                 <input
@@ -227,11 +228,14 @@ function CreateLettura() {
                   name="volume"
                   value={formData.volume}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  disabled={isDaIniziare}
+                  className={`w-full px-3 py-2 border rounded-md transition-colors ${
+                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase">
+                <label className={`block text-xs font-bold uppercase ${isDaIniziare ? 'text-gray-400' : 'text-gray-500'}`}>
                   Cap.
                 </label>
                 <input
@@ -239,11 +243,14 @@ function CreateLettura() {
                   name="capitolo"
                   value={formData.capitolo}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  disabled={isDaIniziare}
+                  className={`w-full px-3 py-2 border rounded-md transition-colors ${
+                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase">
+                <label className={`block text-xs font-bold uppercase ${isDaIniziare ? 'text-gray-400' : 'text-gray-500'}`}>
                   Pag.
                 </label>
                 <input
@@ -251,15 +258,16 @@ function CreateLettura() {
                   name="pagina"
                   value={formData.pagina}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  disabled={isDaIniziare}
+                  className={`w-full px-3 py-2 border rounded-md transition-colors ${
+                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                  }`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Valutazione
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Valutazione</label>
               <select
                 name="valutazione"
                 value={formData.valutazione}
@@ -268,17 +276,13 @@ function CreateLettura() {
               >
                 <option value="">Nessun voto</option>
                 {[1, 2, 3, 4, 5].map((v) => (
-                  <option key={v} value={v}>
-                    {v} ⭐
-                  </option>
+                  <option key={v} value={v}>{v} ⭐</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Note
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Note</label>
               <textarea
                 name="note"
                 value={formData.note}

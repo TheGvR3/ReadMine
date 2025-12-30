@@ -18,11 +18,14 @@ function UpdateLettura() {
     note: ""
   });
 
-  const [obraInfo, setObraInfo] = useState(null); // Per mostrare a quale opera si riferisce la lettura
+  const [obraInfo, setObraInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Helper per lo stato "da_iniziare"
+  const isDaIniziare = formData.stato === "da_iniziare";
 
   // --- 2. CARICAMENTO DATI ESISTENTI ---
   useEffect(() => {
@@ -45,7 +48,7 @@ function UpdateLettura() {
           valutazione: data.valutazione ?? "",
           note: data.note || ""
         });
-        setObraInfo(data.opere); // Salviamo info dell'opera (titolo, etc)
+        setObraInfo(data.opere);
       } else {
         setError("Impossibile recuperare i dati della lettura.");
       }
@@ -58,7 +61,19 @@ function UpdateLettura() {
   // --- 3. GESTORI EVENTI ---
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    setFormData((prev) => {
+      const newData = { ...prev, [name]: value };
+      
+      // Se l'utente seleziona "da_iniziare", azzeriamo i campi progresso
+      if (name === "stato" && value === "da_iniziare") {
+        newData.volume = "";
+        newData.capitolo = "";
+        newData.pagina = "";
+      }
+      
+      return newData;
+    });
   };
 
   // --- 4. SUBMIT ---
@@ -67,12 +82,12 @@ function UpdateLettura() {
     setLoading(true);
     setError("");
 
-    // Prepariamo i dati convertendo le stringhe vuote in null e i numeri in Int
+    // Prepariamo i dati: se è "da_iniziare" forziamo null sui campi progresso
     const dataToSend = {
       data_lettura: formData.data_lettura || null,
-      volume: formData.volume !== "" ? parseInt(formData.volume, 10) : null,
-      capitolo: formData.capitolo !== "" ? parseInt(formData.capitolo, 10) : null,
-      pagina: formData.pagina !== "" ? parseInt(formData.pagina, 10) : null,
+      volume: isDaIniziare ? null : (formData.volume !== "" ? parseInt(formData.volume, 10) : null),
+      capitolo: isDaIniziare ? null : (formData.capitolo !== "" ? parseInt(formData.capitolo, 10) : null),
+      pagina: isDaIniziare ? null : (formData.pagina !== "" ? parseInt(formData.pagina, 10) : null),
       stato: formData.stato || null,
       valutazione: formData.valutazione !== "" ? parseInt(formData.valutazione, 10) : null,
       note: formData.note || null
@@ -104,7 +119,7 @@ function UpdateLettura() {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="flex justify-center items-center p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg mt-10">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg mt-10 border border-gray-100">
           <h1 className="text-2xl font-bold mb-2 text-center text-gray-800">Modifica Lettura</h1>
           {obraInfo && (
             <p className="text-center text-blue-600 font-medium mb-6">
@@ -120,7 +135,6 @@ function UpdateLettura() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* STATO E DATA */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold">Stato</label>
@@ -128,7 +142,7 @@ function UpdateLettura() {
                   name="stato"
                   value={formData.stato}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  className="mt-1 block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="da_iniziare">Da iniziare</option>
                   <option value="in_corso">In corso</option>
@@ -143,53 +157,61 @@ function UpdateLettura() {
                   name="data_lettura"
                   value={formData.data_lettura}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  className="mt-1 block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
             </div>
 
-            {/* PROGRESSO */}
+            {/* PROGRESSO CON CONTROLLO DISABLED */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-semibold">Volume</label>
+                <label className={`block text-sm font-semibold ${isDaIniziare ? 'text-gray-400' : 'text-gray-800'}`}>Volume</label>
                 <input
                   type="number"
                   name="volume"
                   value={formData.volume}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  disabled={isDaIniziare}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md outline-none transition-colors ${
+                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-blue-500"
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold">Capitolo</label>
+                <label className={`block text-sm font-semibold ${isDaIniziare ? 'text-gray-400' : 'text-gray-800'}`}>Capitolo</label>
                 <input
                   type="number"
                   name="capitolo"
                   value={formData.capitolo}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  disabled={isDaIniziare}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md outline-none transition-colors ${
+                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-blue-500"
+                  }`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold">Pagina</label>
+                <label className={`block text-sm font-semibold ${isDaIniziare ? 'text-gray-400' : 'text-gray-800'}`}>Pagina</label>
                 <input
                   type="number"
                   name="pagina"
                   value={formData.pagina}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  disabled={isDaIniziare}
+                  className={`mt-1 block w-full px-3 py-2 border rounded-md outline-none transition-colors ${
+                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-blue-500"
+                  }`}
                 />
               </div>
             </div>
 
-            {/* VALUTAZIONE */}
             <div>
               <label className="block text-sm font-semibold">Valutazione</label>
               <select
                 name="valutazione"
                 value={formData.valutazione}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
+                className="mt-1 block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 <option value="">Nessun voto</option>
                 {[1, 2, 3, 4, 5].map(n => (
@@ -198,7 +220,6 @@ function UpdateLettura() {
               </select>
             </div>
 
-            {/* NOTE */}
             <div>
               <label className="block text-sm font-semibold">Note Personali</label>
               <textarea
@@ -206,7 +227,7 @@ function UpdateLettura() {
                 value={formData.note}
                 onChange={handleChange}
                 rows="3"
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
+                className="mt-1 block w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
 
@@ -214,14 +235,14 @@ function UpdateLettura() {
               <button
                 type="button"
                 onClick={() => navigate("/listletture")}
-                className="w-1/2 py-2 bg-gray-500 text-white rounded-md font-bold"
+                className="w-1/2 py-3 bg-gray-200 text-gray-700 rounded-md font-bold hover:bg-gray-300 transition"
               >
                 Annulla
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-1/2 py-2 bg-blue-600 text-white rounded-md font-bold disabled:bg-gray-400 shadow-md"
+                className="w-1/2 py-3 bg-blue-600 text-white rounded-md font-bold hover:bg-blue-700 disabled:bg-gray-400 shadow-md transition"
               >
                 {loading ? "Salvataggio..." : "Salva Modifiche"}
               </button>
