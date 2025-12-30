@@ -102,19 +102,18 @@ function ListOpere() {
    3. LOGICA DI CALCOLO PER LA PAGINAZIONE + FILTRI
    ---------------------------------------------------------------------------*/
   const filteredBooks = books.filter((book) => {
-    // Verifichiamo che titolo e autori esistano prima di fare toLowerCase()
     const titolo = book.titolo ? book.titolo.toLowerCase() : "";
     const autori = book.autori ? book.autori.toLowerCase() : "";
     const search = searchTerm.toLowerCase();
 
     const matchesSearch = titolo.includes(search) || autori.includes(search);
 
-    // IMPORTANTE: Il valore deve corrispondere a quello che hai nelle <option>
-    // Se nel DB hai "Libro", l'option deve avere value="Libro"
+    // LOGICA CORRETTA:
+    // Usiamo book.tipo (che dai tuoi dati è "Libro" o "Manga/Fumetto")
     const matchesTipo =
       selectedTipo === "Tutti" ||
-      book.tipo?.nome_tipo === selectedTipo ||
-      String(book.id_tipo) === selectedTipo; // Aggiunto controllo anche su ID per sicurezza
+      book.tipo === selectedTipo ||
+      String(book.id_tipo) === selectedTipo;
 
     return matchesSearch && matchesTipo;
   });
@@ -262,8 +261,10 @@ function ListOpere() {
               className="block w-full py-2.5 px-4 border border-gray-200 bg-gray-50 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all appearance-none"
             >
               <option value="Tutti">Tutte le categorie</option>
+
+              {/* I value devono essere identici alle stringhe nel JSON */}
               <option value="Libro">Libri</option>
-              <option value="Manga">Manga</option>
+              <option value="Manga/Fumetto">Manga & Fumetti</option>
               <option value="Rivista">Riviste</option>
             </select>
           </div>
