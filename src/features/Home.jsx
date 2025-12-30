@@ -119,37 +119,61 @@ function Home() {
           </div>
         )}
 
-        {/* ---LE MIE ULTIME LETTURE --- */}
-        {!loading && ultimeLetture.length > 0 && (
-          <section className="mb-12 bg-indigo-900 p-6 rounded-2xl shadow-lg text-white">
+        {/* --- SEZIONE: LE MIE ULTIME LETTURE --- */}
+        {!loading && (
+          <section className="mb-12 bg-blue-900 p-6 rounded-2xl shadow-lg text-white">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                📖 Le Mie Ultime Letture
+                📖 Ultime Letture
               </h2>
-              <Link to="/listletture" className="text-sm bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full transition-colors">
-                Vai al diario
-              </Link>
+              {ultimeLetture.length > 0 && (
+                <Link
+                  to="/listletture"
+                  className="text-sm bg-white/20 hover:bg-white/30 px-4 py-1 rounded-full transition-colors"
+                >
+                  Vedi Diario
+                </Link>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {ultimeLetture.map((l) => (
-                <Link 
-                  key={l.id_lettura} 
-                  to={`/lettura/${l.id_lettura}`}
-                  className="bg-white/10 hover:bg-white/20 p-4 rounded-xl border border-white/10 transition-all"
+            {ultimeLetture.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                {ultimeLetture.map((l) => (
+                  <Link
+                    key={l.id_lettura}
+                    to={`/lettura/${l.id_lettura}`}
+                    className="bg-white/10 hover:bg-white/20 p-4 rounded-xl border border-white/10 transition-all group"
+                  >
+                    <p className="font-bold truncate text-sm group-hover:text-indigo-200 transition-colors">
+                      {l.opere?.titolo}
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-[10px] uppercase font-bold text-indigo-300">
+                        {l.stato?.replace("_", " ")}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        {l.capitolo
+                          ? `Cap. ${l.capitolo}`
+                          : `Vol. ${l.volume || "-"}`}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              /* --- STATO VUOTO --- */
+              <div className="text-center py-6 bg-white/5 rounded-xl border border-dashed border-white/20">
+                <p className="text-indigo-200 mb-4">
+                  Non hai ancora registrato nessuna lettura nel tuo diario.
+                </p>
+                <Link
+                  to="/createlettura"
+                  className="inline-block bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md"
                 >
-                  <p className="font-bold truncate text-sm">{l.opere?.titolo}</p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-[10px] uppercase font-bold text-indigo-200">
-                      {l.stato.replace("_", " ")}
-                    </span>
-                    <span className="text-[10px] text-gray-300">
-                      {l.capitolo ? `Cap. ${l.capitolo}` : `Vol. ${l.volume || '-'}`}
-                    </span>
-                  </div>
+                  + Aggiungi la tua prima lettura
                 </Link>
-              ))}
-            </div>
+              </div>
+            )}
           </section>
         )}
 
