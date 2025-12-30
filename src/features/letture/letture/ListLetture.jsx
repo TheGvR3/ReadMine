@@ -18,7 +18,6 @@ function ListLetture() {
       setError("");
 
       try {
-        // 1. Recupero profilo (il tuo JSON restituisce "id": 5)
         const resUser = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
           { method: "GET" },
@@ -27,13 +26,10 @@ function ListLetture() {
         
         if (!resUser || !resUser.ok) throw new Error("Errore nel recupero profilo");
         const userData = await resUser.json();
-        
-        // Prendiamo l'ID corretto dalla risposta (id o id_utente)
         const currentUserId = userData.id || userData.id_utente;
 
         if (!currentUserId) throw new Error("ID utente non trovato");
 
-        // 2. Chiamata alle letture usando l'ID appena ottenuto
         const resLetture = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/letture/${currentUserId}`,
           { method: "GET" },
@@ -66,6 +62,7 @@ function ListLetture() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 pt-10 pb-10">
+        
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
             📖 Il Mio Diario di Lettura
@@ -85,8 +82,8 @@ function ListLetture() {
         )}
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-            <p className="text-red-700 font-medium">{error}</p>
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-red-700 font-medium">
+            {error}
           </div>
         )}
 
@@ -111,10 +108,15 @@ function ListLetture() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {currentLetture.map((l) => (
-                    <tr key={l.id_lettura} className="hover:bg-gray-50 transition-colors">
+                    <tr key={l.id_lettura} className="hover:bg-indigo-50/30 transition-colors group">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-gray-900">{l.opere?.titolo}</div>
-                        <div className="text-xs text-gray-500">{l.opere?.editore || 'N/A'}</div>
+                        {/* Cliccando sul titolo si va al DETTAGLIO */}
+                        <Link to={`/letturadetail/${l.id_lettura}`} className="block group-hover:translate-x-1 transition-transform">
+                          <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                            {l.opere?.titolo}
+                          </div>
+                          <div className="text-xs text-gray-500">{l.opere?.editore || 'N/A'}</div>
+                        </Link>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -128,15 +130,16 @@ function ListLetture() {
                         <div className="text-sm text-gray-700">
                            {l.volume && <span className="mr-2">Vol. <strong>{l.volume}</strong></span>}
                            {l.capitolo && <span>Cap. <strong>{l.capitolo}</strong></span>}
-                           {!l.volume && !l.capitolo && <span className="text-gray-400 italic">Nessun dato</span>}
+                           {!l.volume && !l.capitolo && <span className="text-gray-400 italic font-light">Nessun dato</span>}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
+                        {/* Pulsante per il DETTAGLIO */}
                         <Link 
-                          to={`/updatelettura/${l.id_lettura}`}
-                          className="bg-white border border-indigo-200 text-indigo-600 px-3 py-1 rounded-md text-sm font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                          to={`/letturadetail/${l.id_lettura}`}
+                          className="text-indigo-600 px-4 py-1 rounded-md text-sm font-bold hover:underline"
                         >
-                          Modifica
+                          Dettagli →
                         </Link>
                       </td>
                     </tr>
