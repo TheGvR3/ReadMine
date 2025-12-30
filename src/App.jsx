@@ -1,5 +1,11 @@
 import React from "react";
-import { BrowserRouter, HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 // import delle pagine
 // Autenticazione
@@ -37,6 +43,7 @@ import UpdateLettura from "./features/letture/letture/UpdateLettura";
 
 // Home Page
 import Home from "./features/Home";
+import Biblioteca from "./features/Biblioteca";
 import Archivio from "./features/Archivio";
 import ChatPage from "./features/ChatPage";
 
@@ -70,6 +77,7 @@ function App() {
             Per ora sono accessibili liberamente.
            --------------------------------------------------------------------- */}
         <Route path="/home" element={<Home />} />
+        <Route path="/biblioteca" element={<Biblioteca />} />
         <Route path="/archivio" element={<Archivio />} />
         <Route path="/chat" element={<ChatPage />} />
 
@@ -79,10 +87,10 @@ function App() {
         <Route path="/updatepassword" element={<UpdatePassword />} />
         {/* Rotte per le letture */}
         <Route path="/listletture" element={<ListLetture />} />
+        <Route path="/listletture/:categoria" element={<ListLetture />} />
         <Route path="/lettura/:id_lettura" element={<LetturaDetail />} />
         <Route path="/createlettura" element={<CreateLettura />} />
         <Route path="/updatelettura/:id_lettura" element={<UpdateLettura />} />
-
 
         {/* Rotte per le opere */}
         <Route path="/listopere" element={<ListOperePage />} />
@@ -102,7 +110,7 @@ function App() {
         {/* Rotte per i generi */}
         <Route path="/listgeneri" element={<ListGeneri />} />
         <Route path="/genere/:id_genere" element={<GenereDetails />} />
-        <Route path="/creategenere" element={<CreateGenere />} /> 
+        <Route path="/creategenere" element={<CreateGenere />} />
         <Route path="/updategenere/:id_genere" element={<UpdateGenere />} />
 
         {/* ---------------------------------------------------------------------

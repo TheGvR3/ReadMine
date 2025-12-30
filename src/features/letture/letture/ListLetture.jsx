@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import Navbar from "../../../components/Navbar";
 import { secureFetch } from "../../../utils/secureFetch";
 
@@ -12,12 +12,15 @@ function ListLetture() {
 
   const navigate = useNavigate();
 
+  const { categoria } = useParams(); // Recupera "libri", "manga" o "riviste" dall'URL
+
   useEffect(() => {
     const loadAllData = async () => {
       setLoading(true);
       setError("");
 
       try {
+        // 1. Recupero il profilo utente per avere l'ID
         const resUser = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
           { method: "GET" },
@@ -31,8 +34,28 @@ function ListLetture() {
 
         if (!currentUserId) throw new Error("ID utente non trovato");
 
+        // 2. Determino quale endpoint chiamare in base alla categoria
+        let endpoint = `${
+          import.meta.env.VITE_API_BASE_URL
+        }/letture/${currentUserId}`;
+
+        if (categoria === "libri") {
+          endpoint = `${
+            import.meta.env.VITE_API_BASE_URL
+          }/letture/utente/${currentUserId}/libri`;
+        } else if (categoria === "manga") {
+          endpoint = `${
+            import.meta.env.VITE_API_BASE_URL
+          }/letture/utente/${currentUserId}/manga`;
+        } else if (categoria === "riviste") {
+          endpoint = `${
+            import.meta.env.VITE_API_BASE_URL
+          }/letture/utente/${currentUserId}/riviste`;
+        }
+
+        // 3. Eseguo la fetch
         const resLetture = await secureFetch(
-          `${import.meta.env.VITE_API_BASE_URL}/letture/${currentUserId}`,
+          endpoint,
           { method: "GET" },
           navigate
         );
@@ -40,8 +63,9 @@ function ListLetture() {
         if (resLetture && resLetture.ok) {
           const lettureData = await resLetture.json();
           setLetture(lettureData);
+          setCurrentPage(1); // Reset pagina alla prima se cambia categoria
         } else {
-          setError("Impossibile caricare le tue letture.");
+          setError("Impossibile caricare le letture richieste.");
         }
       } catch (err) {
         setError(err.message || "Errore di connessione.");
@@ -51,7 +75,21 @@ function ListLetture() {
     };
 
     loadAllData();
-  }, [navigate]);
+  }, [navigate, categoria]); // L'effetto si riattiva se cambia la categoria nell'URL
+
+  // --- LOGICA TITOLO DINAMICO ---
+  const getTitle = () => {
+    switch (categoria) {
+      case "libri":
+        return "📗 Diario Libri";
+      case "manga":
+        return "🎨 Diario Manga & Fumetti";
+      case "riviste":
+        return "📰 Diario Riviste";
+      default:
+        return "📖 Diario di Lettura Completo";
+    }
+  };
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
@@ -62,45 +100,70 @@ function ListLetture() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
-        {/* HEADER */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 text-center sm:text-left">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 tracking-tight">
-            📖 Diario di Lettura
-          </h1>
-          <Link
-            to="/createlettura"
-            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all text-center"
-          >
-            + Aggiungi Opera
-          </Link>
+        {/* HEADER - Sempre visibile anche durante il loading */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 tracking-tight">
+              {getTitle()}
+            </h1>
+            {!loading && (
+              <p className="text-sm text-gray-500">
+                {letture.length}{" "}
+                {letture.length === 1 ? "opera trovata" : "opere trovate"}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Link
+              to="/biblioteca"
+              className="flex-1 sm:flex-none text-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-3 rounded-xl font-bold transition-all shadow-sm"
+            >
+              ↩ Biblioteca
+            </Link>
+            <Link
+              to="/createlettura"
+              className="flex-1 sm:flex-none text-center bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all"
+            >
+              + Aggiungi
+            </Link>
+          </div>
         </div>
 
+        {/* LOADING STATE */}
         {loading && (
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         )}
 
+        {/* ERROR STATE */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 text-red-700 font-medium rounded-r-lg">
             {error}
           </div>
         )}
 
-        {!loading && letture.length === 0 && !error && (
-          <div className="text-center py-10 bg-white/5 rounded-2xl border-2 border-dashed border-white/20">
-            <p className="text-indigo-100 text-lg mb-6">
-              Il tuo diario è ancora vuoto.
+        {/* EMPTY STATE - Messaggio personalizzato se non ci sono letture per quel filtro */}
+        {!loading && !error && letture.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+            <div className="text-5xl mb-4">📑</div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">
+              Ancora nulla qui
+            </h2>
+            <p className="text-gray-500 mb-6">
+              Non hai ancora registrato {categoria ? categoria : "letture"} nel
+              tuo diario.
             </p>
             <Link
               to="/createlettura"
-              className="inline-block bg-green-500 hover:bg-green-400 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg transform hover:scale-105"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md"
             >
-              + Aggiungi la tua prima lettura
+              Inizia ora
             </Link>
           </div>
         )}
 
+        {/* TABLE DATA */}
         {!loading && letture.length > 0 && (
           <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
             <div className="overflow-x-auto">
