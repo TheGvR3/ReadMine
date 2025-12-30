@@ -7,7 +7,6 @@ import { secureFetch } from "../../../utils/secureFetch";
 function CreateLettura() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const preSelectedOpera = location.state;
 
   const [idUtente, setIdUtente] = useState(null);
@@ -32,10 +31,6 @@ function CreateLettura() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // --- LOGICA AGGIUNTA ---
-  // Variabile booleana per controllare se lo stato è "da_iniziare"
-  const isDaIniziare = formData.stato === "da_iniziare";
-
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -48,11 +43,7 @@ function CreateLettura() {
         if (response && response.ok) {
           const data = await response.json();
           const finalId = data.id || data.id_utente;
-          if (finalId) {
-            setIdUtente(finalId);
-          } else {
-            setError("ID utente non trovato nella risposta del server.");
-          }
+          if (finalId) setIdUtente(finalId);
         }
       } catch (err) {
         setError("Errore durante il recupero dell'utente.");
@@ -68,10 +59,8 @@ function CreateLettura() {
       { method: "GET" },
       navigate
     );
-
     if (!response || !response.ok) return [];
     const data = await response.json();
-
     return data.map((o) => ({
       value: o.id_opera,
       label: `${o.titolo} (${o.editore || "N/A"})`,
@@ -84,7 +73,7 @@ function CreateLettura() {
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
 
-      // Reset automatico se si torna a "da_iniziare"
+      // RESET IMMEDIATO: Se lo stato diventa "da_iniziare", svuoto i campi numerici
       if (name === "stato" && value === "da_iniziare") {
         updatedData.volume = "";
         updatedData.capitolo = "";
@@ -105,22 +94,17 @@ function CreateLettura() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!idUtente) {
-      setError("Impossibile identificare l'utente. Riprova.");
-      return;
-    }
-
-    if (!formData.id_opera) {
-      setError("Seleziona un'opera dalla lista.");
+    if (!idUtente || !formData.id_opera) {
+      setError("Dati mancanti (utente o opera).");
       return;
     }
 
     setLoading(true);
     setError("");
 
-    // --- LOGICA AGGIUNTA ---
-    // Nel dataToSend forziamo null se lo stato è "da_iniziare"
+    // Controllo lo stato corrente per decidere se inviare i numeri o null
+    const isDaIniziare = formData.stato === "da_iniziare";
+
     const dataToSend = {
       id_utente: parseInt(idUtente, 10),
       id_opera: formData.id_opera,
@@ -153,7 +137,7 @@ function CreateLettura() {
     setLoading(false);
   };
 
- return (
+  return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex justify-center items-center py-12 px-4">
@@ -162,10 +146,21 @@ function CreateLettura() {
             📝 Aggiungi al Diario
           </h1>
 
-          {/* Error & Success Messages... */}
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">{error}</div>}
+          {successMessage && <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">{successMessage}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* AsyncSelect... */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Cerca Opera *</label>
+              <AsyncSelect
+                cacheOptions
+                loadOptions={loadOpereOptions}
+                onChange={handleSelectOpera}
+                value={selectedOperaValue}
+                placeholder="Esempio: Naruto..."
+                isClearable
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -175,7 +170,7 @@ function CreateLettura() {
                   name="data_lettura"
                   value={formData.data_lettura}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none"
                 />
               </div>
               <div>
@@ -194,7 +189,7 @@ function CreateLettura() {
               </div>
             </div>
 
-            {/* SEZIONE PROGRESSO - CONTROLLO DIRETTO SUL VALORE */}
+            {/* SEZIONE PROGRESSO - LOGICA DI BLOCCO DINAMICA */}
             <div className="grid grid-cols-3 gap-4">
               {["volume", "capitolo", "pagina"].map((field) => (
                 <div key={field}>
@@ -206,11 +201,10 @@ function CreateLettura() {
                     name={field}
                     value={formData[field]}
                     onChange={handleChange}
-                    // Controllo diretto sullo stato nel form
                     disabled={formData.stato === "da_iniziare"} 
                     className={`w-full px-3 py-2 border rounded-md transition-all ${
                       formData.stato === "da_iniziare" 
-                        ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-60" 
+                        ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400" 
                         : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
                     }`}
                   />
@@ -218,21 +212,36 @@ function CreateLettura() {
               ))}
             </div>
 
-            {/* Valutazione e Note... */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Valutazione</label>
+              <select
+                name="valutazione"
+                value={formData.valutazione}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="">Nessun voto</option>
+                {[1, 2, 3, 4, 5].map((v) => <option key={v} value={v}>{v} ⭐</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Note</label>
+              <textarea
+                name="note"
+                value={formData.note}
+                onChange={handleChange}
+                rows="3"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Aggiungi un commento..."
+              />
+            </div>
 
             <div className="flex gap-4 pt-2">
-              <button
-                type="button"
-                onClick={() => navigate("/listletture")}
-                className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-bold"
-              >
+              <button type="button" onClick={() => navigate("/listletture")} className="flex-1 py-3 px-4 bg-gray-200 text-gray-700 rounded-lg font-bold">
                 Annulla
               </button>
-              <button
-                type="submit"
-                disabled={loading || !idUtente}
-                className="flex-2 py-3 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300 transition font-bold shadow-lg"
-              >
+              <button type="submit" disabled={loading || !idUtente} className="flex-2 py-3 px-4 bg-indigo-600 text-white rounded-lg font-bold shadow-lg disabled:bg-indigo-300 transition">
                 {loading ? "Salvataggio..." : "Salva nel Diario"}
               </button>
             </div>
