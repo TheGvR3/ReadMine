@@ -84,7 +84,7 @@ function CreateLettura() {
     setFormData((prev) => {
       const updatedData = { ...prev, [name]: value };
 
-      // Se l'utente seleziona "Da iniziare", resetta i campi numerici a stringa vuota
+      // Reset automatico se si torna a "da_iniziare"
       if (name === "stato" && value === "da_iniziare") {
         updatedData.volume = "";
         updatedData.capitolo = "";
@@ -153,7 +153,7 @@ function CreateLettura() {
     setLoading(false);
   };
 
-  return (
+ return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex justify-center items-center py-12 px-4">
@@ -162,33 +162,10 @@ function CreateLettura() {
             📝 Aggiungi al Diario
           </h1>
 
-          {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-md text-center mb-4 border border-red-100">
-              {error}
-            </div>
-          )}
-          {successMessage && (
-            <div className="bg-green-50 text-green-600 p-3 rounded-md text-center mb-4 border border-green-100 font-bold">
-              {successMessage}
-            </div>
-          )}
+          {/* Error & Success Messages... */}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Cerca Opera *
-              </label>
-              <AsyncSelect
-                cacheOptions
-                loadOptions={loadOpereOptions}
-                onChange={handleSelectOpera}
-                value={selectedOperaValue}
-                placeholder="Esempio: Naruto, One Piece..."
-                isClearable
-                noOptionsMessage={() => "Nessuna opera trovata"}
-                loadingMessage={() => "Ricerca in corso..."}
-              />
-            </div>
+            {/* AsyncSelect... */}
 
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -217,81 +194,31 @@ function CreateLettura() {
               </div>
             </div>
 
-            {/* --- INPUT AGGIORNATI CON DISABLED --- */}
+            {/* SEZIONE PROGRESSO - CONTROLLO DIRETTO SUL VALORE */}
             <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className={`block text-xs font-bold uppercase ${isDaIniziare ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Vol.
-                </label>
-                <input
-                  type="number"
-                  name="volume"
-                  value={formData.volume}
-                  onChange={handleChange}
-                  disabled={isDaIniziare}
-                  className={`w-full px-3 py-2 border rounded-md transition-colors ${
-                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
-                  }`}
-                />
-              </div>
-              <div>
-                <label className={`block text-xs font-bold uppercase ${isDaIniziare ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Cap.
-                </label>
-                <input
-                  type="number"
-                  name="capitolo"
-                  value={formData.capitolo}
-                  onChange={handleChange}
-                  disabled={isDaIniziare}
-                  className={`w-full px-3 py-2 border rounded-md transition-colors ${
-                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
-                  }`}
-                />
-              </div>
-              <div>
-                <label className={`block text-xs font-bold uppercase ${isDaIniziare ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Pag.
-                </label>
-                <input
-                  type="number"
-                  name="pagina"
-                  value={formData.pagina}
-                  onChange={handleChange}
-                  disabled={isDaIniziare}
-                  className={`w-full px-3 py-2 border rounded-md transition-colors ${
-                    isDaIniziare ? "bg-gray-100 border-gray-200 cursor-not-allowed" : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
-                  }`}
-                />
-              </div>
+              {["volume", "capitolo", "pagina"].map((field) => (
+                <div key={field}>
+                  <label className={`block text-xs font-bold uppercase ${formData.stato === "da_iniziare" ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {field === "volume" ? "Vol." : field === "capitolo" ? "Cap." : "Pag."}
+                  </label>
+                  <input
+                    type="number"
+                    name={field}
+                    value={formData[field]}
+                    onChange={handleChange}
+                    // Controllo diretto sullo stato nel form
+                    disabled={formData.stato === "da_iniziare"} 
+                    className={`w-full px-3 py-2 border rounded-md transition-all ${
+                      formData.stato === "da_iniziare" 
+                        ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-60" 
+                        : "border-gray-300 focus:ring-2 focus:ring-indigo-500"
+                    }`}
+                  />
+                </div>
+              ))}
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Valutazione</label>
-              <select
-                name="valutazione"
-                value={formData.valutazione}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                <option value="">Nessun voto</option>
-                {[1, 2, 3, 4, 5].map((v) => (
-                  <option key={v} value={v}>{v} ⭐</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Note</label>
-              <textarea
-                name="note"
-                value={formData.note}
-                onChange={handleChange}
-                rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Aggiungi un commento..."
-              />
-            </div>
+            {/* Valutazione e Note... */}
 
             <div className="flex gap-4 pt-2">
               <button
