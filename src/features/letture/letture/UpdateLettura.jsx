@@ -38,11 +38,11 @@ function UpdateLettura() {
         const data = await response.json();
         setFormData({
           data_lettura: data.data_lettura || "",
-          volume: data.volume || "",
-          capitolo: data.capitolo || "",
-          pagina: data.pagina || "",
+          volume: data.volume ?? "",
+          capitolo: data.capitolo ?? "",
+          pagina: data.pagina ?? "",
           stato: data.stato || "da_iniziare",
-          valutazione: data.valutazione || "",
+          valutazione: data.valutazione ?? "",
           note: data.note || ""
         });
         setObraInfo(data.opere); // Salviamo info dell'opera (titolo, etc)
