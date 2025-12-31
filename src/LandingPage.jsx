@@ -50,7 +50,7 @@ function LandingPage() {
               {/* Colonna Editor: Il Database */}
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="p-2 bg-indigo-100 rounded-lg">🌍</span> Il Database Aperto
+                  <span className="p-2 bg-blue-100 rounded-lg">🌍</span> Il Database Aperto
                 </h3>
                 <p className="text-gray-600 leading-relaxed mb-4">
                   Esplora un catalogo vastissimo di <strong>opere</strong> che include 

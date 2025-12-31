@@ -12,9 +12,6 @@ function CreateAutore() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ---------------------------------------------------------------------------
-  // SUBMIT FORM
-  // ---------------------------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -54,59 +51,76 @@ function CreateAutore() {
     setLoading(false);
   };
 
-  // ---------------------------------------------------------------------------
-  // RENDER 
-  // ---------------------------------------------------------------------------
   return (
-    <div>
+    <div className="min-h-screen bg-[#f8fafc]">
       <Navbar setUser={setUser} setError={setError} />
 
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center">
-            Crea Nuovo Autore
-          </h1>
-
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-          {successMessage && (
-            <p className="text-green-600 text-center mb-4 font-bold">
-              {successMessage}
+      <div className="max-w-xl mx-auto px-4 py-20">
+        <div className="bg-white rounded-4xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100">
+          
+          {/* Header Bento con accento Verde */}
+          <div className="bg-emerald-50 p-8 border-b border-gray-100 text-center">
+            <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+              Nuovo Autore
+            </h1>
+            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-[0.2em] mt-2">
+              Aggiungi un nuovo creatore al database
             </p>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* NOME AUTORE */}
-            <div>
-              <label className="block text-sm font-medium">Nome Autore *</label>
-              <input
-                type="text"
-                value={nomeAutore}
-                onChange={(e) => setNomeAutore(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                placeholder="Es: Eiichiro Oda"
-              />
-            </div>
+          <div className="p-8">
+            {/* Feedback messaggi */}
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-red-100 text-center animate-shake">
+                ⚠️ {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-emerald-100 text-center">
+                ✅ {successMessage}
+              </div>
+            )}
 
-            {/* PULSANTI */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => navigate("/listautori")}
-                className="w-1/3 py-2 px-4 bg-gray-500 text-white rounded-md hover:bg-gray-600 font-bold uppercase tracking-wide transition-colors"
-              >
-                Annulla
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-2/3 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 font-bold uppercase tracking-wide transition-colors shadow-md"
-              >
-                {loading ? "Creazione in corso..." : "Crea Autore"}
-              </button>
-            </div>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Nome Autore */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Nome Completo *
+                </label>
+                <input
+                  type="text"
+                  value={nomeAutore}
+                  onChange={(e) => setNomeAutore(e.target.value)}
+                  required
+                  placeholder="Es: Akira Toriyama"
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all font-bold text-gray-700 text-lg placeholder:text-gray-300"
+                />
+              </div>
+
+              {/* Azioni */}
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate("/listautori")}
+                  className="flex-1 py-4 px-6 bg-gray-100 text-gray-500 rounded-2xl hover:bg-gray-200 font-black text-xs uppercase tracking-[0.2em] transition-all"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-2 py-4 px-6 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 disabled:bg-gray-300 font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-emerald-100"
+                >
+                  {loading ? "Creazione..." : "Crea Autore"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+
+        <p className="text-center mt-8 text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+          Controlla bene il nome prima di confermare
+        </p>
       </div>
     </div>
   );

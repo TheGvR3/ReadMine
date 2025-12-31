@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../../../components/Navbar";
 import Book from "../../../components/Book";
+import Pagination from "../../../components/Pagination";
 import { secureFetch } from "../../../utils/secureFetch";
 
 function ListOpere() {
@@ -15,7 +16,7 @@ function ListOpere() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 16;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTipo, setSelectedTipo] = useState("Tutti");
   const [sortBy, setSortBy] = useState("titolo"); // Valore di default
@@ -147,68 +148,6 @@ function ListOpere() {
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentBooks = sortedBooks.slice(indexOfFirst, indexOfLast);
   const totalPages = Math.ceil(sortedBooks.length / itemsPerPage);
-
-  const getPageNumbers = () => {
-    const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
-
-  /* ---------------------------------------------------------------------------
-    4. SOTTO-COMPONENTE: UI DEI CONTROLLI
-    ---------------------------------------------------------------------------
-  */
-  const PaginationControls = () => (
-    <div className="flex flex-wrap justify-center items-center gap-2 mt-8 mb-4">
-      <button
-        onClick={() => setCurrentPage(1)}
-        disabled={currentPage === 1}
-        className="px-3 py-1 bg-white border border-gray-300 rounded shadow-sm disabled:opacity-50 hover:bg-gray-50 transition"
-      >
-        « Prima
-      </button>
-
-      <button
-        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-        disabled={currentPage === 1}
-        className="px-3 py-1 bg-white border border-gray-300 rounded shadow-sm disabled:opacity-50 hover:bg-gray-50"
-      >
-        ←
-      </button>
-
-      {getPageNumbers().map((num) => (
-        <button
-          key={num}
-          onClick={() => setCurrentPage(num)}
-          className={`px-3 py-1 rounded border shadow-sm transition-colors ${
-            currentPage === num
-              ? "bg-blue-600 text-white border-blue-600 font-bold"
-              : "bg-white border-gray-300 hover:bg-gray-50"
-          }`}
-        >
-          {num}
-        </button>
-      ))}
-
-      <button
-        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 bg-white border border-gray-300 rounded shadow-sm disabled:opacity-50 hover:bg-gray-50"
-      >
-        →
-      </button>
-
-      <button
-        onClick={() => setCurrentPage(totalPages)}
-        disabled={currentPage === totalPages}
-        className="px-3 py-1 bg-white border border-gray-300 rounded shadow-sm disabled:opacity-50 hover:bg-gray-50"
-      >
-        Ultima »
-      </button>
-    </div>
-  );
 
   /* ---------------------------------------------------------------------------
      5. RENDER DELLA PAGINA
@@ -424,7 +363,11 @@ function ListOpere() {
                 </div>
 
                 {/* PAGINAZIONE */}
-                {filteredBooks.length > itemsPerPage && <PaginationControls />}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => setCurrentPage(page)}
+                />
               </>
             ) : (
               <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-gray-300">

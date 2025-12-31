@@ -26,84 +26,61 @@ function CreateOpera() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ---------------------------------------------------------------------------
-  // FUNZIONI DI RICERCA (Autori, Generi, Serie)
-  // ---------------------------------------------------------------------------
-
-  const loadAutoriOptions = async (inputValue) => {
-    if (!inputValue) return [];
-
-    const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/autori/search/${inputValue}`,
-      { method: "GET" },
-      navigate
-    );
-
-    if (!response || !response.ok) return [];
-    const data = await response.json();
-
-    return data.map((a) => ({ value: a.id_autore, label: a.nome_autore }));
+  // Stile personalizzato per gli AsyncSelect
+  const customSelectStyles = {
+    control: (base) => ({
+      ...base,
+      borderRadius: '0.75rem',
+      padding: '2px',
+      borderColor: '#e5e7eb',
+      '&:hover': { borderColor: '#10b981' } // Verde in hover
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: '#ecfdf5',
+      borderRadius: '0.5rem',
+      color: '#065f46',
+      fontWeight: '700'
+    }),
   };
-
-  const loadGeneriOptions = async (inputValue) => {
-    if (!inputValue) return [];
-
-    const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/genere/search/${inputValue}`,
-      { method: "GET" },
-      navigate
-    );
-
-    if (!response || !response.ok) return [];
-    const data = await response.json();
-
-    return data.map((g) => ({ value: g.id_genere, label: g.nome_genere }));
-  };
-
-  const loadSerieOptions = async (inputValue) => {
-    if (!inputValue) return [];
-
-    const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/serie/search/${inputValue}`,
-      { method: "GET" },
-      navigate
-    );
-
-    if (!response || !response.ok) return [];
-    const data = await response.json();
-
-    return data.map((s) => ({ value: s.id_serie, label: s.nome_serie }));
-  };
-
-  // ---------------------------------------------------------------------------
-  // CARICAMENTO TIPI OPERA
-  // ---------------------------------------------------------------------------
 
   useEffect(() => {
     const fetchTipi = async () => {
       setDataLoading(true);
-
-      const response = await secureFetch(
-        `${import.meta.env.VITE_API_BASE_URL}/tipo`,
-        { method: "GET" },
-        navigate
-      );
-
+      const response = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/tipo`, { method: "GET" }, navigate);
       if (response && response.ok) {
         setTipiList(await response.json());
       } else {
         setError("Errore nel caricamento dei tipi opera.");
       }
-
       setDataLoading(false);
     };
-
     fetchTipi();
   }, [navigate]);
 
-  // ---------------------------------------------------------------------------
-  // GESTORI EVENTI
-  // ---------------------------------------------------------------------------
+  const loadAutoriOptions = async (inputValue) => {
+    if (!inputValue) return [];
+    const response = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/autori/search/${inputValue}`, { method: "GET" }, navigate);
+    if (!response || !response.ok) return [];
+    const data = await response.json();
+    return data.map((a) => ({ value: a.id_autore, label: a.nome_autore }));
+  };
+
+  const loadGeneriOptions = async (inputValue) => {
+    if (!inputValue) return [];
+    const response = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/genere/search/${inputValue}`, { method: "GET" }, navigate);
+    if (!response || !response.ok) return [];
+    const data = await response.json();
+    return data.map((g) => ({ value: g.id_genere, label: g.nome_genere }));
+  };
+
+  const loadSerieOptions = async (inputValue) => {
+    if (!inputValue) return [];
+    const response = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/serie/search/${inputValue}`, { method: "GET" }, navigate);
+    if (!response || !response.ok) return [];
+    const data = await response.json();
+    return data.map((s) => ({ value: s.id_serie, label: s.nome_serie }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,33 +95,18 @@ function CreateOpera() {
   };
 
   const handleSingleSelectChange = (selectedOption) => {
-    setFormData((prev) => ({
-      ...prev,
-      id_serie: selectedOption ? selectedOption.value : null,
-    }));
+    setFormData((prev) => ({ ...prev, id_serie: selectedOption ? selectedOption.value : null }));
   };
-
-  // ---------------------------------------------------------------------------
-  // SUBMIT FORM
-  // ---------------------------------------------------------------------------
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      !formData.titolo ||
-      !formData.anno_pubblicazione ||
-      !formData.tipo_opera ||
-      formData.autori.length === 0 ||
-      formData.generi.length === 0
-    ) {
+    if (!formData.titolo || !formData.anno_pubblicazione || !formData.tipo_opera || formData.autori.length === 0 || formData.generi.length === 0) {
       setError("Compila i campi obbligatori (*).");
       return;
     }
 
     setLoading(true);
     setError("");
-
     const dataToSend = {
       ...formData,
       tipo_opera: parseInt(formData.tipo_opera, 10),
@@ -153,15 +115,11 @@ function CreateOpera() {
       lingua_originale: formData.lingua_originale || null,
     };
 
-    const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/opere`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
-      },
-      navigate
-    );
+    const response = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/opere`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dataToSend),
+    }, navigate);
 
     if (response && response.ok) {
       setSuccessMessage("Opera creata con successo!");
@@ -170,181 +128,183 @@ function CreateOpera() {
       const err = await response.json().catch(() => ({}));
       setError(err.error || "Errore durante la creazione.");
     }
-
     setLoading(false);
   };
 
-  // ---------------------------------------------------------------------------
-  // RENDER — stile richiesto
-  // ---------------------------------------------------------------------------
+  if (dataLoading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="font-black text-gray-400 uppercase tracking-widest animate-pulse">Inizializzazione modulo...</p>
+    </div>
+  );
 
   return (
-    <div>
+    <div className="min-h-screen bg-[#f8fafc]">
       <Navbar setUser={setUser} setError={setError} />
+      
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white rounded-4xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100">
+          
+          {/* Header Form */}
+          <div className="bg-green-200 p-8 border-b border-gray-100 text-center">
+            <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+              Nuova Opera
+            </h1>
+            <p className="text-xs font-bold text-green-500 uppercase tracking-widest mt-2">Aggiungi un titolo al database</p>
+          </div>
 
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center">
-            Crea Nuova Opera
-          </h1>
+          <div className="p-8">
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-red-100">
+                ⚠️ {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="bg-green-50 text-green-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-green-100">
+                ✅ {successMessage}
+              </div>
+            )}
 
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-          {successMessage && (
-            <p className="text-green-600 text-center mb-4 font-bold">
-              {successMessage}
-            </p>
-          )}
-
-          {!dataLoading && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* TITOLO */}
-              <div>
-                <label className="block text-sm font-medium">Titolo *</label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Titolo */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Titolo *</label>
                 <input
                   type="text"
                   name="titolo"
                   value={formData.titolo}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  placeholder="Inserisci il titolo dell'opera"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition-all font-bold text-gray-700"
                 />
               </div>
 
-              {/* ANNO + TIPO */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium">
-                    Anno Pubblicazione *
-                  </label>
+              {/* Anno e Tipo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Anno Pubblicazione *</label>
                   <input
                     type="number"
                     name="anno_pubblicazione"
                     value={formData.anno_pubblicazione}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none font-bold text-gray-700"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium">Tipo *</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tipo Opera *</label>
                   <select
                     name="tipo_opera"
                     value={formData.tipo_opera}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none font-bold text-gray-700 appearance-none"
                   >
                     <option value="">Seleziona</option>
                     {tipiList.map((t) => (
-                      <option key={t.id_tipo} value={t.id_tipo}>
-                        {t.nome_tipo}
-                      </option>
+                      <option key={t.id_tipo} value={t.id_tipo}>{t.nome_tipo}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* STATO + LINGUA */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium">Stato</label>
+              {/* Stato e Lingua */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Stato</label>
                   <select
                     name="stato_opera"
                     value={formData.stato_opera}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none font-black uppercase text-xs tracking-widest"
                   >
                     <option value="finito">Finito</option>
                     <option value="in corso">In corso</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium">
-                    Lingua Originale
-                  </label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Lingua Originale</label>
                   <input
                     type="text"
                     name="lingua_originale"
                     value={formData.lingua_originale}
                     onChange={handleChange}
-                    placeholder="Es: Giapponese"
-                    className="mt-1 block w-full px-3 py-2 border rounded-md"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none font-bold text-gray-700"
                   />
                 </div>
               </div>
 
-              {/* EDITORE */}
-              <div>
-                <label className="block text-sm font-medium">Editore</label>
+              {/* Editore */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Editore</label>
                 <input
                   type="text"
                   name="editore"
                   value={formData.editore}
                   onChange={handleChange}
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none font-bold text-gray-700"
                 />
               </div>
 
-              {/* AUTORI */}
-              <div>
-                <label className="block text-sm font-medium">Autori *</label>
-                <AsyncSelect
-                  isMulti
-                  cacheOptions
-                  loadOptions={loadAutoriOptions}
-                  onChange={(sel) => handleMultiSelectChange(sel, "autori")}
-                  placeholder="Cerca autori..."
-                  className="mt-1"
-                />
+              {/* Multi-Selects Asincroni */}
+              <div className="space-y-4 pt-4 border-t border-gray-50">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Autori *</label>
+                  <AsyncSelect
+                    isMulti
+                    cacheOptions
+                    loadOptions={loadAutoriOptions}
+                    onChange={(sel) => handleMultiSelectChange(sel, "autori")}
+                    styles={customSelectStyles}
+                    placeholder="Cerca e seleziona autori..."
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Generi *</label>
+                  <AsyncSelect
+                    isMulti
+                    cacheOptions
+                    loadOptions={loadGeneriOptions}
+                    onChange={(sel) => handleMultiSelectChange(sel, "generi")}
+                    styles={customSelectStyles}
+                    placeholder="Cerca e seleziona generi..."
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Serie</label>
+                  <AsyncSelect
+                    cacheOptions
+                    loadOptions={loadSerieOptions}
+                    onChange={handleSingleSelectChange}
+                    isClearable
+                    styles={customSelectStyles}
+                    placeholder="Collega a una serie (opzionale)..."
+                  />
+                </div>
               </div>
 
-              {/* GENERI */}
-              <div>
-                <label className="block text-sm font-medium">Generi *</label>
-                <AsyncSelect
-                  isMulti
-                  cacheOptions
-                  loadOptions={loadGeneriOptions}
-                  onChange={(sel) => handleMultiSelectChange(sel, "generi")}
-                  placeholder="Cerca generi..."
-                  className="mt-1"
-                />
+              {/* Pulsanti Azione */}
+              <div className="flex gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => navigate("/listopere")}
+                  className="flex-1 py-4 px-6 bg-gray-100 text-gray-500 rounded-2xl hover:bg-gray-200 font-black text-xs uppercase tracking-[0.2em] transition-all"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-2 py-4 px-6 bg-green-600 text-white rounded-2xl hover:bg-green-700 disabled:bg-gray-300 font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-green-100"
+                >
+                  {loading ? "Creazione..." : "Crea Opera"}
+                </button>
               </div>
-
-              {/* SERIE */}
-              <div>
-                <label className="block text-sm font-medium">Serie</label>
-                <AsyncSelect
-                  cacheOptions
-                  loadOptions={loadSerieOptions}
-                  onChange={handleSingleSelectChange}
-                  isClearable
-                  placeholder="Cerca serie..."
-                  className="mt-1"
-                />
-              </div>
-
-              {/* PULSANTI */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => navigate("/listsopere")}
-                className="w-1/3 py-2 px-4 bg-gray-500 text-white rounded-md hover:bg-gray-600 font-bold uppercase tracking-wide transition-colors"
-              >
-                Annulla
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-2/3 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 font-bold uppercase tracking-wide transition-colors shadow-md"
-              >
-                {loading ? "Creazione in corso..." : "Crea Opera"}
-              </button>
-            </div>
             </form>
-          )}
+          </div>
         </div>
       </div>
     </div>

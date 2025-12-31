@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { secureFetch } from "../../utils/secureFetch";
 
 function UpdateProfileData() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [navError, setNavError] = useState(""); // Per compatibilità con Navbar
+  
   const [formData, setFormData] = useState({
     email: "",
     nome: "",
@@ -27,8 +29,9 @@ function UpdateProfileData() {
           { method: "GET" },
           navigate
         );
-        if (res.ok) {
+        if (res && res.ok) {
           const data = await res.json();
+          setUser(data);
           setFormData({
             email: data.email || "",
             nome: data.nome || "",
@@ -68,109 +71,97 @@ function UpdateProfileData() {
       navigate
     );
 
-    if (response.ok) {
-      setMessage({ type: "success", text: "Profilo aggiornato!" });
+    if (response && response.ok) {
+      setMessage({ type: "success", text: "Profilo aggiornato con successo!" });
       setTimeout(() => navigate("/profile"), 1500);
     } else {
-      const err = await response.json();
+      const err = await response.json().catch(() => ({}));
       setMessage({ type: "error", text: err.error || "Errore aggiornamento." });
     }
     setLoading(false);
   };
 
-  if (dataLoading)
-    return <div className="text-center mt-10">Caricamento...</div>;
+  if (dataLoading) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar setUser={setUser} setError={setError} />
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
-        <h2 className="text-2xl font-bold mb-6 text-indigo-700">
-          Modifica Dati Personali
-        </h2>
-
-        {message.text && (
-          <div
-            className={`p-3 mb-4 rounded ${
-              message.type === "success"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {message.text}
+    <div className="min-h-screen bg-[#f8fafc]">
+      <Navbar setUser={setUser} setError={setNavError} />
+      
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white shadow-xl shadow-blue-100/50 rounded-3xl overflow-hidden border border-gray-100">
+          
+          {/* Header del Form */}
+          <div className="bg-linear-to-r from-blue-600 to-blue-400 p-8 text-center text-white">
+            <h2 className="text-2xl font-black">✏️ Modifica Dati</h2>
+            <p className="text-blue-100 text-sm mt-1">Aggiorna le tue informazioni personali</p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="nome"
-            value={formData.nome}
-            onChange={handleChange}
-            placeholder="Nome"
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            name="cognome"
-            value={formData.cognome}
-            onChange={handleChange}
-            placeholder="Cognome"
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email"
-            required
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="date"
-            name="data_nascita"
-            value={formData.data_nascita}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            name="indirizzo"
-            value={formData.indirizzo}
-            onChange={handleChange}
-            placeholder="Indirizzo"
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            name="telefono"
-            value={formData.telefono}
-            onChange={handleChange}
-            placeholder="Telefono"
-            className="w-full p-2 border rounded"
-          />
+          <div className="p-8">
+            {/* Messaggi di Alert */}
+            {message.text && (
+              <div className={`p-4 mb-6 rounded-2xl text-sm font-bold border transition-all ${
+                message.type === "success" 
+                ? "bg-green-50 text-green-600 border-green-100" 
+                : "bg-red-50 text-red-600 border-red-100"
+              }`}>
+                {message.type === "success" ? "✅ " : "⚠️ "}{message.text}
+              </div>
+            )}
 
-          <div className="flex gap-4 pt-4">
-            <button
-              type="button"
-              onClick={() => navigate("/profile")}
-              className="w-1/2 bg-gray-200 py-2 rounded"
-            >
-              Annulla
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-1/2 bg-indigo-600 text-white py-2 rounded"
-            >
-              {loading ? "Salvataggio..." : "Salva"}
-            </button>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Nome" name="nome" value={formData.nome} onChange={handleChange} placeholder="Mario" />
+                <InputGroup label="Cognome" name="cognome" value={formData.cognome} onChange={handleChange} placeholder="Rossi" />
+              </div>
+
+              <InputGroup label="Indirizzo Email" type="email" name="email" disabled value={formData.email} onChange={handleChange} placeholder="email@esempio.it" required />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InputGroup label="Data di Nascita" type="date" name="data_nascita" value={formData.data_nascita} onChange={handleChange} />
+                <InputGroup label="Telefono" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="333 1234567" />
+              </div>
+
+              <InputGroup label="Indirizzo di Residenza" name="indirizzo" value={formData.indirizzo} onChange={handleChange} placeholder="Via Roma, 10" />
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => navigate("/profile")}
+                  className="w-full sm:w-1/2 py-4 px-6 rounded-2xl bg-gray-50 text-gray-500 font-bold hover:bg-gray-100 transition-all active:scale-95"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-1/2 py-4 px-6 rounded-2xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {loading ? "Salvataggio..." : "Salva Modifiche"}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
 }
+
+// Sottocomponente per Input coerenti
+const InputGroup = ({ label, ...props }) => (
+  <div className="flex flex-col gap-1.5">
+    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">{label}</label>
+    <input
+      {...props}
+      className="w-full px-4 py-3.5 rounded-2xl border border-gray-100 bg-gray-50/50 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-gray-300"
+    />
+  </div>
+);
 
 export default UpdateProfileData;

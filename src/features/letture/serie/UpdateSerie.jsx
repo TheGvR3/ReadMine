@@ -4,23 +4,19 @@ import Navbar from "../../../components/Navbar";
 import { secureFetch } from "../../../utils/secureFetch";
 
 function UpdateSerie() {
-  const { id_serie } = useParams(); // Prende l'id dall'URL
+  const { id_serie } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [nomeSerie, setNomeSerie] = useState("");
   const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true); // Stato per il caricamento iniziale
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ---------------------------------------------------------------------------
-  // 1. CARICAMENTO DATI ESISTENTI
-  // ---------------------------------------------------------------------------
   useEffect(() => {
     const fetchSerie = async () => {
       setFetching(true);
       setError("");
-
       const response = await secureFetch(
         `${import.meta.env.VITE_API_BASE_URL}/serie/${id_serie}`,
         {},
@@ -31,7 +27,6 @@ function UpdateSerie() {
 
       if (response.ok) {
         const data = await response.json();
-        // Assicurati che 'nome_serie' sia il nome corretto restituito dal tuo backend
         setNomeSerie(data.nome_serie || "");
       } else {
         const errData = await response.json().catch(() => ({}));
@@ -43,12 +38,8 @@ function UpdateSerie() {
     if (id_serie) fetchSerie();
   }, [id_serie, navigate]);
 
-  // ---------------------------------------------------------------------------
-  // 2. SALVATAGGIO MODIFICHE (PUT)
-  // ---------------------------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!nomeSerie.trim()) {
       setError("Il nome della serie è obbligatorio.");
       return;
@@ -71,81 +62,89 @@ function UpdateSerie() {
 
     if (response.ok) {
       setSuccessMessage("Serie aggiornata con successo!");
-      // Reindirizza alla lista dopo un breve delay
       setTimeout(() => navigate(`/serie/${id_serie}`), 1500);
     } else {
       const err = await response.json().catch(() => ({}));
       setError(err.error || "Errore durante l'aggiornamento.");
     }
-
     setLoading(false);
   };
 
-  if (fetching)
-    return (
-      <p className="text-center mt-10 text-gray-600">
-        Caricamento dati in corso...
-      </p>
-    );
+  if (fetching) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <p className="font-black text-gray-400 uppercase tracking-widest animate-pulse">Recupero dati serie...</p>
+    </div>
+  );
 
-  // ---------------------------------------------------------------------------
-  // RENDER
-  // ---------------------------------------------------------------------------
   return (
-    <div>
+    <div className="min-h-screen bg-[#f8fafc]">
       <Navbar setUser={setUser} setError={setError} />
 
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">
-            Modifica Serie
-          </h1>
-
-          {error && (
-            <p className="text-red-500 text-center mb-4 font-semibold">
-              {error}
+      <div className="max-w-xl mx-auto px-4 py-20">
+        <div className="bg-white rounded-4xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100">
+          
+          {/* Header con accento Blu (Modifica) */}
+          <div className="bg-blue-50 p-8 border-b border-gray-100 text-center">
+            <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+              Modifica Serie
+            </h1>
+            <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mt-2">
+              Aggiorna le informazioni della serie
             </p>
-          )}
-          {successMessage && (
-            <p className="text-green-600 text-center mb-4 font-bold">
-              {successMessage}
-            </p>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* NOME SERIE */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nome Serie *
-              </label>
-              <input
-                type="text"
-                value={nomeSerie}
-                onChange={(e) => setNomeSerie(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+          <div className="p-8">
+            {/* Feedback Visivo */}
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-red-100 text-center">
+                ⚠️ {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="bg-blue-50 text-blue-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-blue-100 text-center">
+                ✅ {successMessage}
+              </div>
+            )}
 
-            {/* PULSANTI AZIONE */}
-            <div className="flex gap-4 pt-2">
-              <button
-                type="button"
-                onClick={() => navigate(`/serie/${id_serie}`)}
-                className="w-1/2 py-2 px-4 bg-gray-500 text-white rounded-md hover:bg-gray-600 font-bold uppercase tracking-wide transition-colors"
-              >
-                Annulla
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-1/2 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 font-bold uppercase tracking-wide transition-colors"
-              >
-                {loading ? "Salvataggio..." : "Salva"}
-              </button>
-            </div>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Input Nome Serie */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Nome della Serie *
+                </label>
+                <input
+                  type="text"
+                  value={nomeSerie}
+                  onChange={(e) => setNomeSerie(e.target.value)}
+                  required
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all font-bold text-gray-700 text-lg"
+                />
+              </div>
+
+              {/* Pulsanti Azione */}
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/serie/${id_serie}`)}
+                  className="flex-1 py-4 px-6 bg-gray-100 text-gray-500 rounded-2xl hover:bg-gray-200 font-black text-xs uppercase tracking-[0.2em] transition-all"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-2 py-4 px-6 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 disabled:bg-gray-300 font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-blue-100"
+                >
+                  {loading ? "Salvataggio..." : "Salva Modifiche"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+
+        <p className="text-center mt-8 text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+          Le modifiche verranno applicate a tutte le opere collegate
+        </p>
       </div>
     </div>
   );

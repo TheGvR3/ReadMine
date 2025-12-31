@@ -14,16 +14,11 @@ function GenereDetails() {
   const [genereName, setGenereName] = useState("");
   const [user, setUser] = useState(null);
 
-  // ---------------------------------------------------------------------------
-  // CARICA DATI (OPERE E NOME GENERE)
-  // ---------------------------------------------------------------------------
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       setError("");
-
       try {
-        // --- NUOVO: Recupera profilo utente per gestire i permessi ---
         const resUser = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
           {},
@@ -34,7 +29,6 @@ function GenereDetails() {
           setUser(userData);
         }
 
-        // 1. Carica Nome Genere
         const resGenere = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/genere/${id_genere}`,
           {},
@@ -50,7 +44,6 @@ function GenereDetails() {
           return;
         }
 
-        // 2. Carica Opere filtrate per Genere
         const response = await secureFetch(
           `${import.meta.env.VITE_API_BASE_URL}/opere/genere/${id_genere}`,
           {},
@@ -77,14 +70,8 @@ function GenereDetails() {
     if (id_genere) loadData();
   }, [id_genere, navigate]);
 
-  // Naviga alla pagina di modifica
-  const handleUpdate = () => {
-    navigate(`/updategenere/${id_genere}`);
-  };
+  const handleUpdate = () => navigate(`/updategenere/${id_genere}`);
 
-  // ---------------------------------------------------------------------------
-  // ELIMINA GENERE
-  // ---------------------------------------------------------------------------
   const handleDeleteGenere = async () => {
     if (opere.length > 0) {
       alert("Impossibile eliminare il genere: sono presenti opere collegate.");
@@ -103,7 +90,6 @@ function GenereDetails() {
     );
 
     if (response && response.ok) {
-      alert("Genere eliminato con successo.");
       navigate("/ListGeneri");
     } else {
       alert("Errore durante l'eliminazione.");
@@ -111,85 +97,105 @@ function GenereDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-<Navbar setUser={setUser} setError={setError} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* HEADER */}
+    <div className="min-h-screen bg-[#f8fafc]">
+      <Navbar setUser={setUser} setError={setError} />
 
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-          <h1 className="text-3xl font-extrabold text-gray-900">
-            {loading ? "Caricamento..." : `Genere: ${genereName}`}
-          </h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        {/* HEADER BENTO */}
+        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl shadow-gray-200/50 border border-gray-100 mb-10 transition-all">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] bg-gray-50 px-3 py-1 rounded-full">
+                Categoria / Genere
+              </span>
+              <h1 className="text-4xl md:text-5xl font-black text-gray-900 mt-4 tracking-tight">
+                {loading ? "..." : genereName}
+              </h1>
+            </div>
 
-          <div className="flex items-center gap-3">
-            {/* Questi pulsanti appaiono solo se l'utente è un EDITOR */}
             {user && user.editor === true && (
-              <>
+              <div className="flex items-center gap-3">
                 <button
                   onClick={handleUpdate}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-semibold shadow-sm"
+                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-100 active:scale-95"
                 >
                   Modifica
                 </button>
                 <button
                   onClick={handleDeleteGenere}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition font-semibold shadow-sm"
+                  className="px-8 py-4 bg-red-600 text-white rounded-2xl hover:bg-red-700 transition-all font-black text-xs uppercase tracking-widest shadow-lg shadow-red-100 active:scale-95"
                 >
                   Elimina
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
 
-        {loading && (
-          <p className="text-center text-gray-600 text-lg">
-            Caricamento opere...
-          </p>
-        )}
-
+        {/* FEEDBACK ERRORI */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 text-center">
-            {error}
+          <div className="bg-red-50 text-red-600 p-6 rounded-4xl] border border-red-100 text-center font-black uppercase text-xs tracking-widest mb-10 animate-shake">
+            ⚠️ {error}
           </div>
         )}
 
-        {/* TITOLO SEZIONE OPERE */}
-        <h2 className="text-xl font-bold text-gray-800 mb-6">
-          📚 Opere di questo genere ({opere.length})
-        </h2>
-
-        {/* LISTA OPERE */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {opere.map((opera) => (
-            <Link key={opera.id_opera} to={`/opere/${opera.id_opera}`}>
-              <Book
-                title={opera.titolo}
-                author={opera.autori}
-                anno={opera.anno_pubblicazione}
-                stato_opera={opera.stato_opera}
-                serie={opera.serie}
-              />
-            </Link>
-          ))}
+        {/* TITOLO SEZIONE GRID */}
+        <div className="flex items-center gap-4 mb-8 ml-4">
+          <h2 className="text-xl font-black text-gray-800 uppercase tracking-tighter">
+            Opere Associate
+          </h2>
+          <div className="h-0.5 flex-1 bg-gray-100"></div>
+          <span className="bg-white border border-gray-100 text-gray-400 px-4 py-1 rounded-full text-xs font-black">
+            {opere.length} RISULTATI
+          </span>
         </div>
 
-        {/* NESSUNA OPERA TROVATA */}
+        {/* LISTA OPERE GRID */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="h-72 bg-gray-100 rounded-4xl] animate-pulse"></div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {opere.map((opera) => (
+              <Link 
+                key={opera.id_opera} 
+                to={`/opere/${opera.id_opera}`}
+                className="transition-all duration-300 hover:scale-[1.03] active:scale-95"
+              >
+                <Book
+                  title={opera.titolo}
+                  author={opera.autori}
+                  anno={opera.anno_pubblicazione}
+                  stato_opera={opera.stato_opera}
+                  serie={opera.serie}
+                />
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
         {!loading && opere.length === 0 && !error && (
-          <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-200 mt-6">
-            <p className="text-gray-400 text-lg">
-              Al momento non ci sono opere associate a questo genere.
+          <div className="text-center py-24 bg-white rounded-[3rem] border-4 border-dashed border-gray-50 flex flex-col items-center">
+            <span className="text-6xl mb-6 opacity-20">📂</span>
+            <p className="text-gray-400 font-black uppercase tracking-[0.2em] text-sm max-w-xs leading-relaxed">
+              Nessuna opera trovata per questa categoria
             </p>
           </div>
         )}
 
-        {/* TORNA INDIETRO */}
-        <div className="flex justify-center mt-12">
+        {/* FOOTER NAVIGATION */}
+        <div className="mt-20 flex justify-center">
           <button
             onClick={() => navigate("/ListGeneri")}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold text-lg transition-colors"
+            className="group flex items-center gap-3 px-10 py-5 bg-white border-2 border-gray-100 text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:border-blue-600 hover:text-blue-600 transition-all shadow-sm"
           >
-            ← Torna alla lista generi
+            <span className="transition-transform group-hover:-translate-x-2">←</span>
+            Lista Generi
           </button>
         </div>
       </div>

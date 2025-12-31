@@ -11,14 +11,10 @@ function CreateGenere() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ---------------------------------------------------------------------------
-  // SUBMIT FORM
-  // ---------------------------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Validazione base (almeno 3 caratteri)
     if (nomeGenere.trim().length < 3) {
       setError("Il nome del genere deve avere almeno 3 caratteri.");
       return;
@@ -32,7 +28,7 @@ function CreateGenere() {
     setLoading(true);
 
     const response = await secureFetch(
-      `${import.meta.env.VITE_API_BASE_URL}/genere/`, // Endpoint per i generi
+      `${import.meta.env.VITE_API_BASE_URL}/genere/`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,7 +41,6 @@ function CreateGenere() {
 
     if (response.ok) {
       setSuccessMessage("Genere creato con successo!");
-      // Reindirizza alla lista generi dopo 1.5 secondi
       setTimeout(() => navigate("/ListGeneri"), 1500);
     } else {
       const err = await response.json().catch(() => ({}));
@@ -55,65 +50,76 @@ function CreateGenere() {
     setLoading(false);
   };
 
-  // ---------------------------------------------------------------------------
-  // RENDER
-  // ---------------------------------------------------------------------------
   return (
-    <div>
+    <div className="min-h-screen bg-[#f8fafc]">
       <Navbar setUser={setUser} setError={setError} />
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center text-blue-700">
-            Crea Nuovo Genere
-          </h1>
 
-          {error && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 text-center">
-              {error}
-            </div>
-          )}
-
-          {successMessage && (
-            <p className="text-green-600 text-center mb-4 font-bold">
-              {successMessage}
+      <div className="max-w-xl mx-auto px-4 py-20">
+        <div className="bg-white rounded-4xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100">
+          
+          {/* Header con accento Verde (Creazione) */}
+          <div className="bg-green-50 p-8 border-b border-gray-100 text-center">
+            <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+              Nuovo Genere
+            </h1>
+            <p className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em] mt-2">
+              Classifica le tue opere con una nuova categoria
             </p>
-          )}
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* NOME GENERE */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nome Genere *
-              </label>
-              <input
-                type="text"
-                value={nomeGenere}
-                onChange={(e) => setNomeGenere(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Es: Shonen, Seinen, Fantasy..."
-              />
-            </div>
+          <div className="p-8">
+            {/* Messaggi di feedback */}
+            {error && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-red-100 text-center">
+                ⚠️ {error}
+              </div>
+            )}
+            {successMessage && (
+              <div className="bg-green-50 text-green-600 p-4 rounded-xl mb-6 text-xs font-black uppercase tracking-widest border border-green-100 text-center">
+                ✅ {successMessage}
+              </div>
+            )}
 
-            {/* PULSANTI */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => navigate("/listgeneri")}
-                className="w-1/3 py-2 px-4 bg-gray-500 text-white rounded-md hover:bg-gray-600 font-bold uppercase tracking-wide transition-colors"
-              >
-                Annulla
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-2/3 py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 font-bold uppercase tracking-wide transition-colors shadow-md"
-              >
-                {loading ? "Creazione in corso..." : "Crea Genere"}
-              </button>
-            </div>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Nome Genere */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Nome Genere *
+                </label>
+                <input
+                  type="text"
+                  value={nomeGenere}
+                  onChange={(e) => setNomeGenere(e.target.value)}
+                  required
+                  placeholder="Es: Cyberpunk, Slice of Life..."
+                  className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500 focus:bg-white outline-none transition-all font-bold text-gray-700 text-lg placeholder:text-gray-300"
+                />
+              </div>
+
+              {/* Pulsanti Azione */}
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate("/listgeneri")}
+                  className="flex-1 py-4 px-6 bg-gray-100 text-gray-500 rounded-2xl hover:bg-gray-200 font-black text-xs uppercase tracking-[0.2em] transition-all"
+                >
+                  Annulla
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-2 py-4 px-6 bg-green-600 text-white rounded-2xl hover:bg-green-700 disabled:bg-gray-300 font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-green-100"
+                >
+                  {loading ? "Creazione..." : "Crea Genere"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+
+        <p className="text-center mt-8 text-gray-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+          Evita duplicati per mantenere il database pulito
+        </p>
       </div>
     </div>
   );
