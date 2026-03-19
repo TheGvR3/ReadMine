@@ -7,6 +7,8 @@ import {
   Navigate,
 } from "react-router-dom";
 
+import { AuthProvider } from "./context/AuthContext";
+
 // import delle pagine
 import LandingPage from "./LandingPage";
 // Autenticazione
@@ -48,6 +50,7 @@ import Home from "./features/Home";
 import Biblioteca from "./features/Biblioteca";
 import Archivio from "./features/Archivio";
 import ChatPage from "./features/ChatPage";
+import Guide from "./pages/Guide";
 
 function App() {
   return (
@@ -57,6 +60,7 @@ function App() {
     // Gestisce la navigazione tramite URL senza ricaricare la pagina.
     // -------------------------------------------------------------------------
     <HashRouter>
+      <AuthProvider>
       <Routes>
         {/* ---------------------------------------------------------------------
             Redirect di default:
@@ -70,6 +74,7 @@ function App() {
             Accessibili senza autenticazione.
             --------------------------------------------------------------------- */}
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/guide" element={<Guide />} />
 
         {/* ---------------------------------------------------------------------
             Rotte per
@@ -129,6 +134,7 @@ function App() {
            --------------------------------------------------------------------- */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      </AuthProvider>
     </HashRouter>
   );
 }

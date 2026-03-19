@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { loginService } from "../../services/auth/loginService";
-import { Link } from "react-router-dom";
 
 function Login() {
   // ---------------------------------------------------------------------------
@@ -33,42 +32,27 @@ function Login() {
   // - reindirizza alla dashboard
   // ---------------------------------------------------------------------------
   const handleSubmit = async (event) => {
-    event.preventDefault(); // evita il refresh della pagina
+    event.preventDefault(); 
     setError("");
+
+
+    // Estrazione e pulizia immediata dei valori
+    const identifier = event.target.identifier.value.trim();
+    const password = event.target.password.value.trim();
+
+    // --- VALIDAZIONI ---
+    // Ritorniamo subito in caso di errore
+    if (identifier.length < 3) return setError("L'username deve avere almeno 3 caratteri");
+    if (identifier.length > 100) return setError("L'username non può superare i 100 caratteri");
+    if (/\s/.test(identifier)) return setError("L'username non può contenere spazi");
+
+    if (password.length < 6) return setError("La password deve avere almeno 6 caratteri");
+    if (password.length > 50) return setError("La password non può superare i 50 caratteri");
+    if (/\s/.test(password)) return setError("La password non può contenere spazi");
+
+    // --- CHIAMATA API ---
+    // Solo se la validazione passa attiviamo il caricamento
     setLoading(true);
-
-    // Recupero dei valori dal form
-    const identifier = event.target.identifier.value;
-    const password = event.target.password.value;
-
-    // validazioni lato client
-    if (identifier.trim().length < 3) {
-      setError("L'username deve avere almeno 3 caratteri");
-      setLoading(false);
-      return;
-    } else if (identifier.trim().length > 100) {
-      setError("L'username non può superare i 100 caratteri");
-      setLoading(false);
-      return;
-    } else if (/\s/.test(identifier)) {
-      setError("L'username non può contenere spazi");
-      setLoading(false);
-      return;
-    }
-
-    if (password.trim().length < 6) {
-      setError("La password deve avere almeno 6 caratteri");
-      setLoading(false);
-      return;
-    } else if (password.trim().length > 50) {
-      setError("La password non può superare i 50 caratteri");
-      setLoading(false);
-      return;
-    } else if (/\s/.test(password)) {
-      setError("La password non può contenere spazi");
-      setLoading(false);
-      return;
-    }
 
     try {
       // -----------------------------------------------------------------------

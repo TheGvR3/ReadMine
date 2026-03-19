@@ -34,68 +34,40 @@ function Register() {
   // ---------------------------------------------------------------------------
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true);
+
     setError("");
     setSuccessMessage("");
 
-    // Recupero dei valori dal form
-    const email = event.target.email.value;
-    const password = event.target.password.value;
-    const nome = event.target.nome.value;
-    const cognome = event.target.cognome.value;
+    // Recupero dei valori dal form e trim
+    const email = event.target.email.value.trim();
+    const password = event.target.password.value.trim();
+    const nome = event.target.nome.value.trim();
+    const cognome = event.target.cognome.value.trim();
     const data_nascita = event.target.data_nascita.value;
-    const indirizzo = event.target.indirizzo.value;
-    const telefono = event.target.telefono.value;
+    const indirizzo = event.target.indirizzo.value.trim();
+    const telefono = event.target.telefono.value.trim();
 
-    // -------------------------------------------------------------------------
-    // VALIDAZIONE DEI CAMPI
-    // -------------------------------------------------------------------------
+    // 2. VALIDAZIONE DEI CAMPI
+    if (!email.includes("@") || !email.includes("."))
+      return setError("Inserisci un'email valida");
+    if (email.length > 100)
+      return setError("L'email non può superare i 100 caratteri");
 
-    // Email valida
-    if (!email.includes("@") || !email.includes(".")) {
-      setError("Inserisci un'email valida");
-      setLoading(false);
-      return;
-    } else if (email.length > 100) {
-      setError("L'email non può superare i 100 caratteri");
-      setLoading(false);
-      return;
-    }
+    if (password.length < 6)
+      return setError("La password deve avere almeno 6 caratteri");
+    if (password.length > 50)
+      return setError("La password non può superare i 50 caratteri");
+    if (/\s/.test(password))
+      return setError("La password non può contenere spazi");
 
-    // Password valida
-    if (password.trim().length < 6) {
-      setError("La password deve avere almeno 6 caratteri");
-      setLoading(false);
-      return;
-    } else if (password.trim().length > 50) {
-      setError("La password non può superare i 50 caratteri");
-      setLoading(false);
-      return;
-    } else if (/\s/.test(password)) {
-      setError("La password non può contenere spazi");
-      setLoading(false);
-      return;
-    }
+    if (nome && nome.length > 50)
+      return setError("Il nome non può superare i 50 caratteri");
+    if (cognome && cognome.length > 50)
+      return setError("Il cognome non può superare i 50 caratteri");
+    if (telefono && !/^[0-9+\s-]+$/.test(telefono))
+      return setError("Il numero di telefono contiene caratteri non validi");
 
-    // Nome e cognome opzionali → ma se presenti devono essere validi
-    if (nome && nome.length > 50) {
-      setError("Il nome non può superare i 50 caratteri");
-      setLoading(false);
-      return;
-    }
-
-    if (cognome && cognome.length > 50) {
-      setError("Il cognome non può superare i 50 caratteri");
-      setLoading(false);
-      return;
-    }
-
-    // Telefono opzionale → se presente deve essere numerico
-    if (telefono && !/^[0-9+\s-]+$/.test(telefono)) {
-      setError("Il numero di telefono contiene caratteri non validi");
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     const registerData = {
       email,

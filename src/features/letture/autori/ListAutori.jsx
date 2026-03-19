@@ -1,22 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
-import AutoreCard from "../../../components/AutoreCard"; // Import corretto
+import AutoreCard from "../../../components/AutoreCard";
 import Pagination from "../../../components/Pagination";
 import { secureFetch } from "../../../utils/secureFetch";
+import { useAuth } from "../../../context/AuthContext"; 
 
 function ListAutori() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [autori, setAutori] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("nome");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20; 
+  const itemsPerPage = 20;
   const navigate = useNavigate();
 
-  // Reset pagina 1 quando cerchi qualcosa
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -27,134 +28,187 @@ function ListAutori() {
       setLoading(true);
       setError("");
       try {
-        const resUser = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/users/profile`, { method: "GET" }, navigate);
-        if (resUser && resUser.ok) {
-          setUser(await resUser.json());
-        }
-
-        const response = await secureFetch(`${import.meta.env.VITE_API_BASE_URL}/autori`, { method: "GET" }, navigate);
-        if (response && response.ok) {
-          const data = await response.json();
-          setAutori(data);
+        const response = await secureFetch(
+          `${import.meta.env.VITE_API_BASE_URL}/autori`,
+          { method: "GET" },
+          navigate
+        );
+        if (response?.ok) {
+          setAutori(await response.json());
+        } else {
+          throw new Error("Impossibile caricare gli autori");
         }
       } catch (err) {
         setError("Errore di connessione al server.");
       } finally {
         setLoading(false);
-        // Scroll in alto solo dopo che il caricamento è finito o la pagina cambia
-        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
     loadAutori();
-  }, [navigate]); // Rimosso currentPage da qui per evitare loop, lo scroll lo gestiamo al cambio pagina o fine loading
+  }, [navigate]);
 
-  // Effetto dedicato solo allo scroll quando cambia la pagina (opzionale se già nel loadAutori)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
 
-  const filteredAutori = autori.filter((a) => 
-    a.nome_autore?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const sortedAndFilteredAutori = useMemo(() => {
+    const filtered = autori.filter((a) =>
+      a.nome_autore?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const sortedAutori = [...filteredAutori].sort((a, b) => {
-    const nameA = a.nome_autore || "";
-    const nameB = b.nome_autore || "";
-    return sortBy === "nome" 
-      ? nameA.localeCompare(nameB)
-      : nameB.localeCompare(nameA);
-  });
+    return filtered.sort((a, b) => {
+      const nameA = a.nome_autore || "";
+      const nameB = b.nome_autore || "";
+      if (sortBy === "nome") return nameA.localeCompare(nameB);
+      if (sortBy === "nome-desc") return nameB.localeCompare(nameA);
+      return 0;
+    });
+  }, [autori, searchTerm, sortBy]);
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentAutori = sortedAutori.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(sortedAutori.length / itemsPerPage);
+  const currentAutori = sortedAndFilteredAutori.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(sortedAndFilteredAutori.length / itemsPerPage);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15, scale: 0.98 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { type: "spring", stiffness: 400, damping: 30 },
+    },
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      <Navbar setUser={setUser} setError={setError} />
+      <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-6 pb-24 md:py-10">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
-          <div>
-            <h1 className="text-4xl font-black text-gray-900 tracking-tight">Esplora Autori</h1>
-            <p className="text-gray-400 font-bold text-sm uppercase tracking-widest mt-1">
-              {filteredAutori.length} menti creative nel database
+        {/* --- HEADER --- */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div className="text-center md:text-left w-full">
+            <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">
+              Esplora Autori
+            </h1>
+            <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mt-0.5">
+              {sortedAndFilteredAutori.length} menti creative
             </p>
           </div>
-          {/* Usiamo l'optional chaining per sicurezza */}
-          {user?.editor === true && (
+          {user?.editor && (
             <Link
               to="/createautore"
-              className="inline-flex items-center justify-center px-6 py-3.5 bg-green-600 text-white font-black rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-100 text-sm"
+              className="w-full md:w-auto text-center px-4 py-2 bg-green-50 text-green-700 border-2 border-green-200 font-bold rounded-xl hover:bg-green-100 transition-all active:scale-95 text-xs uppercase tracking-wider"
             >
-              + AGGIUNGI AUTORE
+              + Aggiungi Autore
             </Link>
           )}
         </div>
 
         {/* --- FILTRI --- */}
-        <div className="bg-white p-4 rounded-4xl border border-gray-100 shadow-sm mb-10 flex flex-col md:flex-row gap-4">
+        <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm mb-8 flex flex-col md:flex-row gap-2.5 relative z-10">
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Cerca un autore per nome..."
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 transition-all"
+              placeholder="Cerca un autore..."
+              className="w-full pl-10 pr-9 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 transition-all font-medium"
               value={searchTerm}
               onChange={handleSearchChange}
             />
-            <svg className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <svg className="absolute left-3.5 top-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
+            {searchTerm && (
+              <button
+                onClick={() => { setSearchTerm(""); setCurrentPage(1); }}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none bg-gray-200/50 rounded-full p-0.5"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
 
-          <div className="md:w-64">
+          {/* CORRETTO: La select e la sua icona personalizzata */}
+          <div className="md:w-48 relative">
             <select
               value={sortBy}
-              onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-              className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer font-bold text-gray-600 shadow-none outline-none"
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-3 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 font-bold text-gray-600 cursor-pointer appearance-none outline-none transition-all"
             >
-              <option value="nome">Ordine Alfabetico (A-Z)</option>
-              <option value="nome-desc">Ordine Alfabetico (Z-A)</option>
+              <option value="nome">Ordine A-Z</option>
+              <option value="nome-desc">Ordine Z-A</option>
             </select>
+            {/* Freccia personalizzata per nascondere quella brutta di default del browser */}
+            <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
           </div>
         </div>
 
         {/* --- CONTENT --- */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200/50 rounded-4xl animate-pulse" />
+              <div key={i} className="h-24 bg-white rounded-xl animate-pulse border border-gray-100" />
             ))}
           </div>
         ) : error ? (
-          <div className="bg-red-50 p-8 rounded-4xl text-center border border-red-100">
-            <p className="text-red-600 font-black uppercase tracking-widest text-sm">{error}</p>
+          <div className="text-center p-6 bg-red-50 rounded-2xl border border-red-100 text-red-600 font-bold text-sm">
+            {error}
           </div>
         ) : (
           <>
             {currentAutori.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                key={currentPage + searchTerm + sortBy}
+              >
                 {currentAutori.map((autore) => (
-                  <AutoreCard key={autore.id_autore} autore={autore} />
+                  <motion.div key={autore.id_autore} variants={itemVariants}>
+                    <AutoreCard autore={autore} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             ) : (
-              <div className="text-center py-20 bg-white rounded-4xl border border-dashed border-gray-200 shadow-sm">
-                <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">Nessun autore trovato</p>
-                <button 
-                  onClick={() => { setSearchTerm(""); setCurrentPage(1); }} 
-                  className="mt-4 text-blue-600 font-black text-xs uppercase tracking-widest hover:text-blue-800 transition-colors"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200 mt-6"
+              >
+                <p className="text-gray-400 font-black uppercase tracking-widest text-xs">
+                  Nessun autore trovato
+                </p>
+                <button
+                  onClick={() => { setSearchTerm(""); setCurrentPage(1); }}
+                  className="mt-3 text-blue-600 font-bold text-sm hover:underline"
                 >
-                  Resetta Filtri
+                  Resetta la ricerca
                 </button>
-              </div>
+              </motion.div>
             )}
 
-            {/* --- PAGINAZIONE --- */}
+            {/* --- PAGINAZIONE --- (Aggiunto flex justify-center) */}
             {totalPages > 1 && (
-              <div className="mt-12 flex justify-center">
+              <div className="mt-8 flex justify-center">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

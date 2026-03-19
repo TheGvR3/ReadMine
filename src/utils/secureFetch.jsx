@@ -5,72 +5,64 @@ import { refreshAccessToken } from "./refreshTokenRequest";
  * -----------------------------------------------------------------------------
  * Wrapper attorno a fetch() che:
  * - aggiunge automaticamente il token nell'header
- * - intercetta errori 401/403 (token scaduto o non valido)
+ * - intercetta errori 401 (token scaduto o non valido)
  * - prova a fare il refresh del token
  * - ritenta la richiesta con il nuovo token
  * - se il refresh fallisce → reindirizza al login
  * -----------------------------------------------------------------------------
  */
 export async function secureFetch(url, options = {}, navigate) {
-  // 1. Recupero del token attuale dal localStorage
   let token = localStorage.getItem("accessToken");
 
-  // SE IL TOKEN MANCA COMPLETAMENTE (es. cancellato manualmente o prima volta)
+  // 1. SE IL TOKEN MANCA COMPLETAMENTE
   if (!token) {
     console.log("Token assente, provo il refresh silenzioso...");
-    token = await refreshAccessToken(); // Prova a recuperarlo dal cookie
+    token = await refreshAccessToken();
 
+    // Se fallisce anche il refresh iniziale, lo mandiamo via
     if (!token) {
-      navigate("/login");
+      if (navigate) navigate("/login", { replace: true });
       return null;
     }
   }
+
+  // Helper per generare dinamicamente le opzioni di fetch per non ripetere codice
+  const getFetchOptions = (currentToken) => ({
+    ...options,
+    credentials: "include",
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${currentToken}`,
+    },
+  });
+
   try {
     // 2. Prima richiesta al server
-    //    - Copiamo tutte le opzioni passate (method, headers, body, ecc.)
-    //    - Aggiungiamo l'header Authorization con il token
-    let response = await fetch(url, {
-      ...options, // copia tutte le proprietà (method, body, ecc.)
-      credentials: "include",
-      headers: {
-        ...options.headers, // mantiene eventuali header personalizzati
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    let response = await fetch(url, getFetchOptions(token));
 
-    // 3. Se il token è scaduto o non valido (401/403)
-    //    → tentiamo il refresh del token
-    if (response.status === 401 || response.status === 403) {
-      // 3.1 Tentativo di ottenere un nuovo access token tramite refresh token
+    // 3. SOLO 401: Token scaduto o manipolato (Non 403)
+    if (response.status === 401) {
+      console.log("Token scaduto, avvio refresh...");
       const newToken = await refreshAccessToken();
-      // 3.2 Se il refresh fallisce → l'utente deve rifare login
+
+      // Se il refresh fallisce (es. refreshToken scaduto)
       if (!newToken) {
         console.warn("Refresh fallito o sessione scaduta. Redirect al login.");
-        localStorage.removeItem("accessToken");
-        navigate("/login");
-        return null; // interrompo
+        // refreshAccessToken ha già pulito il localStorage
+        if (navigate) navigate("/login", { replace: true });
+        return null; // Interrompiamo l'esecuzione
       }
-      // 3.3 Salviamo il nuovo token nel localStorage
-      localStorage.setItem("accessToken", newToken);
-      // 3.4 Ritentiamo la stessa richiesta, ma con il token aggiornato
-      response = await fetch(url, {
-        ...options,
-        credentials: "include",
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${newToken}`,
-        },
-      });
+
+      // Ritentiamo la chiamata con la configurazione aggiornata al nuovo token
+      response = await fetch(url, getFetchOptions(newToken));
     }
-    // 4. Ritorniamo la risposta finale (sia quella originale che quella ritentata)
+
+    // 4. Ritorniamo la risposta (sia essa la prima andata a buon fine, o la ritentata, o eventuali errori 400/500/403)
     return response;
+
   } catch (error) {
     console.error("Errore di rete o connessione rifiutata:", error);
-
-    // Se vuoi che l'utente venga sloggato anche se il server è irraggiungibile:
-    // navigate("/login");
-
-    // Oppure rilancia l'errore per gestirlo nel componente (es. alert "Server Offline")
+    // Rilanciamo l'errore in modo che il componente React possa fare un setError("Server offline")
     throw new Error("Impossibile connettersi al server. Riprova più tardi.");
   }
 }

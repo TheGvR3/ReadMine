@@ -16,13 +16,8 @@ function CreateAutore() {
     e.preventDefault();
     setError("");
 
-    if (nomeAutore.trim().length < 3) {
-      setError("Il nome dell'autore deve avere almeno 3 caratteri.");
-      return;
-    }
-
-    if (nomeAutore.trim().length > 100) {
-      setError("Il nome dell'autore non può superare i 100 caratteri.");
+    if ((nomeAutore.trim().length < 3) || (nomeAutore.trim().length > 100)) {
+      setError("Il nome dell'autore deve avere tra i 3 e i 100 caratteri.");
       return;
     }
 

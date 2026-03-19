@@ -1,16 +1,93 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion, useInView } from "framer-motion";
 import Navbar from "../components/Navbar";
-import GenereCard from "../components/GenereCard";
-import SerieCard from "../components/SerieCard";
-import AutoreCard from "../components/AutoreCard";
-import Book from "../components/Book";
 import { secureFetch } from "../utils/secureFetch";
+import MioDiario from "../components/MioDiario";
+import { useAuth } from "../context/AuthContext"; // Importiamo l'Auth globale!
 
+// ─── Card Opera (Animata) ─────────────────────────────────────────────────────
+function OperaCard({ book, index = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { amount: 0.1, triggerOnce: true });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ scale: 0.8, opacity: 0, y: 15 }}
+      animate={inView ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.8, opacity: 0, y: 15 }}
+      transition={{ duration: 0.4, delay: index * 0.05, type: "spring", stiffness: 300, damping: 24 }}
+      // Aggiunto active:scale-[0.97] per il feedback tattile su mobile
+      className="group w-[calc(50%-0.375rem)] sm:w-[130px] bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col overflow-hidden active:scale-[0.97]"
+    >
+      <Link to={`/opere/${book.id_opera}`} className="w-full h-full flex flex-col p-3">
+        {/* Corretto bg-linear in bg-gradient */}
+        <div className="w-full aspect-square bg-linear-to-br from-blue-50 to-indigo-100 rounded-xl mb-3 flex items-center justify-center border border-gray-100 group-hover:scale-105 transition-transform duration-300">
+          <span className="text-3xl drop-shadow-sm">📕</span>
+        </div>
+        <p className="text-[13px] sm:text-sm font-bold text-gray-800 group-hover:text-blue-600 line-clamp-2 leading-snug mb-1 mt-auto">
+          {book.titolo}
+        </p>
+        {book.autori && (
+          <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wide line-clamp-1">
+            {book.autori.nome} {book.autori.cognome}
+          </p>
+        )}
+      </Link>
+    </motion.div>
+  );
+}
+
+// ─── Componente Pillola Generico (per Autori, Serie, Generi) ──────────────────
+// Ho unificato le pillole per evitare di ripetere lo stesso codice tre volte!
+function AnimatedPill({ item, linkTo, label, index = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { amount: 0.1, triggerOnce: true });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ scale: 0.8, opacity: 0, y: 10 }}
+      animate={inView ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.8, opacity: 0, y: 10 }}
+      transition={{ duration: 0.3, delay: index * 0.05, type: "spring", stiffness: 300, damping: 24 }}
+    >
+      <Link
+        to={linkTo}
+        className="block px-4 py-2 bg-white border border-gray-100 rounded-xl text-[13px] sm:text-sm font-bold text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-all shadow-sm active:scale-95 line-clamp-1"
+      >
+        {label}
+      </Link>
+    </motion.div>
+  );
+}
+
+// ─── Row section ──────────────────────────────────────────────────────────────
+function Row({ title, emoji, linkTo, linkLabel, children }) {
+  return (
+    <section className="mb-10 px-4 sm:px-0 overflow-hidden">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm sm:text-base font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
+          <span className="text-lg">{emoji}</span> {title}
+        </h2>
+        <Link
+          to={linkTo}
+          className="text-[10px] sm:text-xs font-black text-blue-600 hover:text-blue-800 hover:underline uppercase tracking-widest px-2 py-1"
+        >
+          {linkLabel}
+        </Link>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+// ─── Home ─────────────────────────────────────────────────────────────────────
 function Home() {
   const navigate = useNavigate();
+  const { user } = useAuth(); // Recuperiamo l'utente dal Context globale
 
-  const [user, setUser] = useState(null);
   const [books, setBooks] = useState([]);
   const [autori, setAutori] = useState([]);
   const [serie, setSerie] = useState([]);
@@ -19,443 +96,164 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const getRandomElements = (array, n) => {
-    return [...array].sort(() => 0.5 - Math.random()).slice(0, n);
-  };
+  const shuffle = (arr, n) => [...arr].sort(() => 0.5 - Math.random()).slice(0, n);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
+    const load = async () => {
       setLoading(true);
       setError("");
       try {
-        const resUser = await secureFetch(
-          `${import.meta.env.VITE_API_BASE_URL}/users/profile`,
-          { method: "GET" },
-          navigate
-        );
-        let currentUserId = null;
-        if (resUser && resUser.ok) {
-          const userData = await resUser.json();
-          setUser(userData);
-          currentUserId = userData.id || userData.id_utente;
-        }
-
-        const fetchPromises = [
-          secureFetch(
-            `${import.meta.env.VITE_API_BASE_URL}/opere`,
-            {},
-            navigate
-          ),
-          secureFetch(
-            `${import.meta.env.VITE_API_BASE_URL}/autori`,
-            {},
-            navigate
-          ),
-          secureFetch(
-            `${import.meta.env.VITE_API_BASE_URL}/serie`,
-            {},
-            navigate
-          ),
-          secureFetch(
-            `${import.meta.env.VITE_API_BASE_URL}/genere`,
-            {},
-            navigate
-          ),
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        
+        // Fetch dei cataloghi pubblici
+        const promises = [
+          secureFetch(`${baseUrl}/opere`, { method: "GET" }, navigate),
+          secureFetch(`${baseUrl}/autori`, { method: "GET" }, navigate),
+          secureFetch(`${baseUrl}/serie`, { method: "GET" }, navigate),
+          secureFetch(`${baseUrl}/genere`, { method: "GET" }, navigate),
         ];
 
+        // Se l'utente è loggato, fetch delle letture
+        const currentUserId = user?.id || user?.id_utente;
         if (currentUserId) {
-          fetchPromises.push(
-            secureFetch(
-              `${
-                import.meta.env.VITE_API_BASE_URL
-              }/letture/utente/${currentUserId}`,
-              {},
-              navigate
-            )
+          promises.push(
+            secureFetch(`${baseUrl}/letture/utente/${currentUserId}`, { method: "GET" }, navigate)
           );
         }
 
-        const responses = await Promise.all(fetchPromises);
-        if (responses[0]?.ok) setBooks(await responses[0].json());
-        if (responses[1]?.ok) setAutori(await responses[1].json());
-        if (responses[2]?.ok) setSerie(await responses[2].json());
-        if (responses[3]?.ok) setGeneri(await responses[3].json());
-        if (currentUserId && responses[4]?.ok) {
-          const dataLetture = await responses[4].json();
-          setUltimeLetture(dataLetture.slice(0, 5));
+        const [resOpere, resAutori, resSerie, resGeneri, resLetture] = await Promise.all(promises);
+        
+        if (resOpere?.ok) setBooks(await resOpere.json());
+        if (resAutori?.ok) setAutori(await resAutori.json());
+        if (resSerie?.ok) setSerie(await resSerie.json());
+        if (resGeneri?.ok) setGeneri(await resGeneri.json());
+        
+        if (currentUserId && resLetture?.ok) {
+          const datiLetture = await resLetture.json();
+          setUltimeLetture(datiLetture.slice(0, 3));
         }
-      } catch (err) {
+      } catch {
         setError("Errore di connessione al server.");
       } finally {
         setLoading(false);
       }
     };
-    loadDashboardData();
-  }, [navigate]);
+    
+    // Ricarica se l'utente cambia
+    load();
+  }, [navigate, user]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar setError={setError} />
+    <div className="min-h-screen bg-[#f8fafc] font-sans">
+      <Navbar /> {/* Niente props! */}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {/* INTESTAZIONE UNIFORMATA */}
-        <div className="bg-white p-6 md:p-10 rounded-xl shadow-md text-center mb-10 border-t-4 border-blue-600">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
-            👋 Benvenuto su ReadMine
-          </h1>
-          <p className="text-base md:text-lg text-gray-600">
-            Il tuo spazio personale per gestire letture, autori e collezioni.
-          </p>
-        </div>
-
-        {/* BOX INVITO EDITOR */}
-        {user && !user.editor && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-            <div className="text-left">
-              <h3 className="text-xl font-bold text-blue-900 mb-1">
-                🚀 Aiutaci a far crescere il progetto!
-              </h3>
-              <p className="text-blue-700">
-                Non trovi l'opera che cerchi? Diventa un <strong>Editor</strong>{" "}
-                per avere i permessi di
-                <span className="text-green-700"> inserire</span>,
-                <span style={{ color: "blue" }}> modificare</span> o
-                <span className="text-red-700"> eliminare</span> opere, serie,
-                generi e autori.
-              </p>
-            </div>
+      {/* Spazio inferiore per la Bottom Nav (pb-24) */}
+      <div className="max-w-4xl mx-auto px-0 sm:px-6 pt-6 pb-24 md:py-10">
+        
+        {/* ── INTESTAZIONE MINIMAL ────────────────────────────────────────── */}
+        <div className="px-4 sm:px-0 mb-8 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest font-black mb-1">
+              ReadMine
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+              {user ? `Ciao, ${user.nome ?? user.username} 👋` : "Dashboard"}
+            </h1>
+          </div>
+          {user && !user.editor && (
             <button
               onClick={() => navigate("/profile")}
-              className="shrink-0 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+              className="text-[10px] sm:text-xs font-black text-blue-700 bg-blue-100 border border-blue-200 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-blue-200 hover:border-blue-300 transition-colors active:scale-95 shadow-sm uppercase tracking-widest"
             >
-              Fai la richiesta nel Profilo
+              Diventa Editor
             </button>
-          </div>
-        )}
-
-        {/* GUIDA GENERALE READMINE (Database & Biblioteca) */}
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm mb-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            📖 Guida all'utilizzo di ReadMine
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 text-left">
-            {/* SEZIONE EDITOR: GESTIONE DATABASE */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-blue-600 flex items-center gap-2">
-                🛠️ Contribuisci al Database (Editor)
-              </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Per aggiungere nuovi elementi nell'Archivio (Autori, Serie,
-                Generi o Opere):
-              </p>
-              <ul className="space-y-3 text-sm text-gray-700">
-                <li>
-                  •{" "}
-                  <span className="text-green-600 font-bold uppercase">
-                    Inserire:
-                  </span>{" "}
-                  Vai nella sezione desiderata e clicca su "Nuovo". Controlla
-                  sempre che non sia già presente per evitare duplicati.
-                </li>
-                <li>
-                  •{" "}
-                  <span className="text-blue-600 font-bold uppercase">
-                    Modificare:
-                  </span>{" "}
-                  In caso di errore nei dati, puoi correggere ogni elemento dal
-                  suo dettaglio.
-                </li>
-                <li>
-                  •{" "}
-                  <span className="text-red-600 font-bold uppercase">
-                    Eliminare:
-                  </span>{" "}
-                  Se un elemento è errato o non più necessario, puoi rimuoverlo
-                  definitivamente.
-                </li>
-              </ul>
-              <p className="text-[11px] bg-blue-50 p-2 rounded text-blue-800">
-                <strong>Nota Opere:</strong> Titolo, Anno, Tipo, Stato, un
-                Autore e un Genere sono <strong>obbligatori</strong>. Lingua,
-                Editore e Serie sono opzionali.
-              </p>
-            </div>
-
-            {/* SEZIONE UTENTE: DIARIO & FILTRI */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-orange-600 flex items-center gap-2">
-                📚 Gestisci la tua Biblioteca
-              </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Usa la biblioteca per tenere traccia delle tue letture personali
-                e filtrare i tuoi diari:
-              </p>
-              <div className="space-y-2 text-sm text-gray-700">
-                <p>
-                  • <strong>Filtri rapidi:</strong> Scegli tra <i>Libri</i>,{" "}
-                  <i>Manga & Fumetti</i> o <i>Riviste</i> per vedere solo quel
-                  tipo di opere.
-                </p>
-                <p>
-                  •{" "}
-                  <span className="text-green-600 font-bold uppercase text-xs">
-                    Aggiungi al diario:
-                  </span>{" "}
-                  Clicca su "Aggiungi" in Biblioteca, sul <strong>"+"</strong>{" "}
-                  in lista o su <strong>"+ Diario"</strong> nel dettaglio opera.
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 text-xs">
-                <p className="font-bold text-gray-800 mb-1">Dati Diario:</p>
-                <p className="text-gray-600">
-                  Obbligatori: <strong>Nome</strong> e <strong>Stato</strong>.
-                  <br />
-                  Opzionali: Data, Volume, Capitolo, Pagina, Valutazione e Note.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* BADGE BETA */}
-          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">
-              Versione Beta - Nuove funzioni in arrivo
-            </span>
-          </div>
+          )}
         </div>
+
+        {/* ── LOADING / ERROR ─────────────────────────────────────────────── */}
         {loading && (
-          <p className="text-center text-lg text-gray-600">
-            Caricamento in corso...
-          </p>
+          <div className="text-center py-20 flex flex-col items-center">
+            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
+              Caricamento in corso...
+            </p>
+          </div>
         )}
+        
         {error && (
-          <div className="text-center text-red-600 font-medium my-6">
-            {error}
+          <div className="mx-4 sm:mx-0 mb-6 bg-red-50 border border-red-100 rounded-2xl p-5 text-center shadow-sm">
+            <p className="text-red-600 text-xs font-black uppercase tracking-widest">
+              ⚠️ {error}
+            </p>
           </div>
         )}
-        {/* --- SEZIONE FULCRO: DASHBOARD DIARIO (STYLE DARK PREMIUM) --- */}
-        {!loading && (
-          <section className="mb-16 relative">
-            {/* Contenitore Principale Scuro */}
-            <div className="bg-[#0f172a] rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-blue-900/20 overflow-hidden relative">
-              {/* Decorazione di sfondo per dare profondità */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full -mr-20 -mt-20"></div>
 
-              {/* Header Sezione */}
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg border border-blue-500/30">
-                      Personal Space
-                    </span>
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                    Il Mio Diario di Lettura
-                  </h2>
-                </div>
-                <Link
-                  to="/listletture"
-                  className="inline-flex items-center justify-center px-6 py-3 bg-white text-gray-900 font-black rounded-2xl hover:bg-blue-50 transition-all shadow-xl shadow-white/5 text-sm"
-                >
-                  Vai al Diario Completo →
-                </Link>
-              </div>
-
-              {/* Grid Letture */}
-              {ultimeLetture.length > 0 ? (
-                <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {ultimeLetture.slice(0, 3).map((l) => {
-                    // Stili specifici per il tema Dark
-                    const getDarkStatusStyles = (stato) => {
-                      switch (stato) {
-                        case "in_corso":
-                          return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
-                        case "da_iniziare":
-                          return "text-blue-400 bg-blue-400/10 border-blue-400/20";
-                        case "finito":
-                          return "text-gray-400 bg-gray-400/10 border-gray-400/20";
-                        default:
-                          return "text-red-400 bg-red-400/10 border-red-400/20";
-                      }
-                    };
-
-                    return (
-                      <Link
-                        key={l.id_lettura}
-                        to={`/lettura/${l.id_lettura}`}
-                        className="group bg-white/5 border border-white/10 p-6 rounded-4xl hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                      >
-                        <div className="flex flex-col h-full">
-                          <div className="flex justify-between items-start mb-4">
-                            <span
-                              className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase border ${getDarkStatusStyles(
-                                l.stato
-                              )}`}
-                            >
-                              {l.stato?.replace("_", " ")}
-                            </span>
-                            {l.valutazione && (
-                              <span className="text-yellow-400 font-bold text-xs flex items-center gap-1">
-                                ★ {l.valutazione}
-                              </span>
-                            )}
-                          </div>
-
-                          <h3 className="text-xl font-black text-white group-hover:text-blue-400 transition-colors line-clamp-2 mb-6">
-                            {l.opere?.titolo}
-                          </h3>
-
-                          <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                            <div className="flex gap-4">
-                              {l.volume && (
-                                <div>
-                                  <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">
-                                    Vol
-                                  </p>
-                                  <p className="text-lg font-black text-white">
-                                    {l.volume}
-                                  </p>
-                                </div>
-                              )}
-                              {l.capitolo && (
-                                <div>
-                                  <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">
-                                    Cap
-                                  </p>
-                                  <p className="text-lg font-black text-white">
-                                    {l.capitolo}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-600 transition-all">
-                              <span className="text-white group-hover:translate-x-0.5 transition-transform">
-                                →
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="relative z-10 py-12 text-center">
-                  <p className="text-gray-400 font-bold mb-6">
-                    Non hai ancora iniziato il tuo viaggio...
-                  </p>
-                  <Link
-                    to="/createlettura"
-                    className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-500 transition-all"
-                  >
-                    + INIZIA ORA
-                  </Link>
-                </div>
-              )}
+        {!loading && !error && (
+          <>
+            {/* Componente esterno (sperando che anche lui sia responsive!) */}
+            <div className="mb-10 px-4 sm:px-0">
+               <MioDiario ultimeLetture={ultimeLetture} />
             </div>
-          </section>
-        )}
-        {/* --- SCOPRI OPERE --- */}
-        <section className="mb-14">
-          <div className="flex justify-between items-end mb-6 border-b border-gray-200 pb-2">
-            <h2 className="text-2xl font-bold text-gray-800">
-              🎲 Scopri Opere
-            </h2>
-            <Link
-              to="/listopere"
-              className="text-sm font-bold text-blue-600 hover:underline uppercase tracking-wider"
-            >
-              Tutte le opere
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {books.length > 0 &&
-              getRandomElements(books, 4).map((book) => (
-                <Link
-                  key={book.id_opera}
-                  to={`/opere/${book.id_opera}`}
-                  className="hover:scale-[1.02] transition-transform"
-                >
-                  <Book
-                    title={book.titolo}
-                    author={book.autori}
-                    anno={book.anno_pubblicazione}
-                    stato_opera={book.stato_opera}
-                    serie={book.serie}
-                  />
-                </Link>
+            
+            {/* ── OPERE ───────────────────────────────────────────────────── */}
+            <Row title="Scopri Opere" emoji="🎲" linkTo="/listopere" linkLabel="Tutte">
+              {shuffle(books, 6).map((b, i) => (
+                <OperaCard key={b.id_opera} book={b} index={i} />
               ))}
-          </div>
-        </section>
+            </Row>
 
-        {/* --- SCOPRI AUTORI, SERIE & GENERI (Grid Tripla) --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Sezione Autori */}
-          <section>
-            <div className="flex justify-between items-end mb-6 border-b border-gray-200 pb-2">
-              <h2 className="text-xl font-bold text-gray-800">✍️ Autori</h2>
-              <Link
-                to="/listautori"
-                className="text-xs font-bold text-blue-500 uppercase"
-              >
-                Vedi Tutti
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              {autori.length > 0 &&
-                getRandomElements(autori, 3).map((autore) => (
-                  <AutoreCard key={autore.id_autore} autore={autore} />
-                ))}
-            </div>
-          </section>
-
-          {/* Sezione Serie (Esempio, se la hai) */}
-          <section>
-            <div className="flex justify-between items-end mb-6 border-b border-gray-200 pb-2">
-              <h2 className="text-xl font-bold text-gray-800">📚 Serie</h2>
-              <Link
-                to="/listserie"
-                className="text-xs font-bold text-blue-500 uppercase"
-              >
-                Vedi Tutte
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {serie &&
-                getRandomElements(serie, 4).map((s) => (
-                  <SerieCard
-                    key={s.id_serie}
-                    id={s.id_serie}
-                    nome={s.nome_serie}
-                  />
-                ))}
-            </div>
-          </section>
-
-          {/* Sezione Generi */}
-          <section>
-            <div className="flex justify-between items-end mb-6 border-b border-gray-200 pb-2">
-              <h2 className="text-xl font-bold text-gray-800">🎭 Generi</h2>
-              <Link
-                to="/listgeneri"
-                className="text-xs font-bold text-blue-500 uppercase"
-              >
-                Vedi Tutti
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              {getRandomElements(generi, 3).map((genere) => (
-                <GenereCard
-                  key={genere.id_genere}
-                  id={genere.id_genere}
-                  nome={genere.nome_genere}
-                  isEditor={false} // Disattiviamo i tasti Edit/Delete in Home
+            {/* ── AUTORI ──────────────────────────────────────────────────── */}
+            <Row title="Autori" emoji="✍️" linkTo="/listautori" linkLabel="Tutti">
+              {shuffle(autori, 6).map((a, i) => (
+                <AnimatedPill 
+                  key={a.id_autore} 
+                  linkTo={`/autore/${a.id_autore}`} // Corretto al singolare come in App.js
+                  label={a.nome_autore} 
+                  index={i} 
                 />
               ))}
+            </Row>
+
+            {/* ── SERIE ───────────────────────────────────────────── */}
+            <Row title="Serie" emoji="📚" linkTo="/listserie" linkLabel="Tutte">
+              {shuffle(serie, 6).map((s, i) => (
+                <AnimatedPill 
+                  key={s.id_serie} 
+                  linkTo={`/serie/${s.id_serie}`} 
+                  label={s.nome_serie} 
+                  index={i} 
+                />
+              ))}
+            </Row>
+
+            {/* ── GENERI ───────────────────────────────────────────── */}
+            <Row title="Generi" emoji="🎭" linkTo="/listgeneri" linkLabel="Tutti">
+              {shuffle(generi, 6).map((g, i) => (
+                <AnimatedPill 
+                  key={g.id_genere} 
+                  linkTo={`/genere/${g.id_genere}`} 
+                  label={g.nome_genere} 
+                  index={i} 
+                />
+              ))}
+            </Row>
+
+            {/* ── GUIDA ───────────────────────────────────────────────────── */}
+            <div className="mx-4 sm:mx-0 mt-8">
+              <Link
+                to="/guide"
+                className="flex items-center justify-between px-5 py-4 sm:p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-blue-300 hover:bg-blue-50/50 transition-all group active:scale-[0.98]"
+              >
+                <span className="text-xs sm:text-sm font-black text-gray-700 group-hover:text-blue-700 transition-colors flex items-center gap-3 uppercase tracking-widest">
+                  <span className="text-xl">❓</span> Guida all'utilizzo
+                </span>
+                <span className="text-gray-300 group-hover:text-blue-600 text-xl transition-transform transform group-hover:translate-x-1 font-bold">
+                  →
+                </span>
+              </Link>
             </div>
-          </section>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

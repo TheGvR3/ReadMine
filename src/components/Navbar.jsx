@@ -1,150 +1,119 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import Logout from "./Logout";
+import { useAuth } from "../context/AuthContext"; // Importiamo l'Auth Context
 
-function Navbar({ setUser, setError }) {
-  // ---------------------------------------------------------------------------
-  // Stato che controlla l'apertura/chiusura del menu mobile (hamburger)
-  // false → menu chiuso
-  // true  → menu aperto
-  // ---------------------------------------------------------------------------
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+// ─── Bottom Navigation (solo mobile) ─────────────────────────────────────────
+function BottomNav() {
+  const { pathname } = useLocation();
 
-  // ---------------------------------------------------------------------------
-  // Icona del logo (SVG)
-  // Estratta in un componente interno per pulizia e riutilizzo
-  // ---------------------------------------------------------------------------
+  const links = [
+    { to: "/home",        icon: "🏠", label: "Home"      },
+    { to: "/biblioteca",  icon: "📚", label: "Biblioteca" },
+    { to: "/archivio",    icon: "🗂️",  label: "Archivio"  },
+    { to: "/listletture", icon: "📖", label: "Diario"    },
+    { to: "/profile",     icon: "👤", label: "Profilo"   },
+  ];
 
-  // ---------------------------------------------------------------------------
-  // Componente NavLink:
-  // - Standardizza lo stile dei link
-  // - Chiude automaticamente il menu mobile quando si clicca un link
-  // - isMobile → cambia lo stile se il link è nel menu mobile
-  // ---------------------------------------------------------------------------
-  const NavLink = ({ to, children, isMobile = false }) => (
-    <Link
-      to={to}
-      onClick={() => setIsMenuOpen(false)}
-      className={`
-        text-gray-600 hover:text-blue-600 rounded-md font-medium transition duration-150 ease-in-out
-        ${
-          isMobile
-            ? "block w-full text-left py-2 px-3 text-base hover:bg-gray-100"
-            : "px-3 py-2 text-sm"
-        }
-      `}
-    >
-      {children}
-    </Link>
-  );
-
-  // ---------------------------------------------------------------------------
-  // RENDER DELLA NAVBAR
-  // ---------------------------------------------------------------------------
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* --- NUOVO LOGO READMINE --- */}
-          <div className="flex items-center">
-            <Link to="/home" className="flex flex-col leading-none">
+    <>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-gray-100 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] pb-safe">
+        <div className="flex items-center justify-around px-1 py-1.5 pb-1">
+          {links.map((item) => {
+            const active = pathname === item.to;
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all active:scale-95 ${
+                  active ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {/* Aggiunto un leggero effetto ombra all'icona attiva */}
+                <span className={`text-[15px] leading-none transition-transform ${active ? "scale-110 drop-shadow-sm" : ""}`}>
+                  {item.icon}
+                </span>
+                <span className={`text-[9px] font-bold uppercase tracking-wide ${active ? "text-blue-600" : ""}`}>
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
+  );
+}
+
+// ─── Navbar principale ────────────────────────────────────────────────────────
+// Rimosse le props setUser e setError, usiamo useAuth()
+function Navbar() {
+  // Anche il componente Logout dovrebbe usare useAuth internamente, 
+  // ma per non rompere il tuo codice attuale le passiamo null o funzioni vuote 
+  // finché non lo aggiorni. L'ideale è che Logout gestisca il logout da solo.
+
+  const NavLink = ({ to, children }) => {
+    const { pathname } = useLocation();
+    const isActive = pathname === to;
+    
+    return (
+      <Link
+        to={to}
+        className={`rounded-md font-bold px-3 py-2 text-sm transition-all duration-200 ${
+          isActive 
+            ? "text-blue-600 bg-blue-50" 
+            : "text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+        }`}
+      >
+        {children}
+      </Link>
+    );
+  };
+
+  return (
+    <>
+      <nav className="bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16"> {/* h-14 -> h-16 per far respirare il logo */}
+
+            {/* Logo */}
+            <Link to="/home" className="flex flex-col leading-none active:scale-95 transition-transform">
               <h1 className="text-2xl font-black tracking-tighter">
                 <span className="text-blue-600">READ</span>
-                <span className="text-gray-800">MINE</span>
+                <span className="text-gray-900">MINE</span>
               </h1>
-              {/* Opzionale: un micro-testo sotto per richiamare lo stile login */}
-              <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">
-                Own your library
-              </span>
             </Link>
-          </div>
 
-          {/* NAVIGAZIONE DESKTOP */}
-          <div className="hidden sm:ml-6 sm:flex sm:space-x-4">
-            <NavLink to="/home">Dashboard</NavLink>
-            <NavLink to="/biblioteca">Biblioteca</NavLink>
-            <NavLink to="/archivio">Archivio</NavLink>
-            <NavLink to="/chat">Chat AI</NavLink>
-            <NavLink to="/profile">Profilo</NavLink>
-          </div>
-
-          {/* AREA DESTRA: Logout + Hamburger */}
-          <div className="flex items-center">
-            <div className="hidden sm:block">
-              <Logout
-                setUser={setUser}
-                setError={setError}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition duration-150 ease-in-out shadow-sm"
-              />
+            {/* Navigazione desktop */}
+            <div className="hidden md:flex md:items-center md:gap-1"> {/* md invece di sm */}
+              <NavLink to="/home">Dashboard</NavLink>
+              <NavLink to="/biblioteca">Biblioteca</NavLink>
+              <NavLink to="/archivio">Archivio</NavLink>
+              <NavLink to="/chat">Chat AI</NavLink>
+              <NavLink to="/profile">Profilo</NavLink>
+              <div className="ml-4 pl-4 border-l border-gray-200">
+                <Logout className="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95" />
+              </div>
             </div>
 
-            {/* Bottone Hamburger Mobile */}
-            <div className="sm:hidden">
-              <button
-                type="button"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition duration-150 ease-in-out"
+            {/* Su mobile: solo Chat AI + Logout nell'header */}
+            <div className="flex items-center gap-3 md:hidden">
+              <Link
+                to="/chat"
+                className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500 bg-gray-50 hover:text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-xl transition-all active:scale-95"
               >
-                <span className="sr-only">Apri menu principale</span>
-                <svg
-                  className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-                <svg
-                  className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                💬 Chat
+              </Link>
+              <Logout className="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-xl text-[13px] font-bold transition-all shadow-sm active:scale-95" />
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* MENU MOBILE */}
-      <div
-        className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`}
-        id="mobile-menu"
-      >
-        <div className="pt-2 pb-3 space-y-1 border-t border-gray-100 bg-gray-50">
-          <NavLink to="/home" isMobile={true}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/biblioteca" isMobile={true}>
-            Biblioteca
-          </NavLink>
-          <NavLink to="/archivio" isMobile={true}>
-            Archivio
-          </NavLink>
-          <NavLink to="/chat" isMobile={true}>
-            Chat AI
-          </NavLink>
-          <NavLink to="/profile" isMobile={true}>
-            Profilo
-          </NavLink>
-          <div className="pt-4 px-4">
-            <Logout setUser={setUser} setError={setError} />
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      <BottomNav />
+    </>
   );
 }
 
