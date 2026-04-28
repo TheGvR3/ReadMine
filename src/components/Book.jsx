@@ -29,7 +29,7 @@ function Book({
       {/* TESTATA (Copertina) */}
       <div className={`${headerBg} p-3 sm:p-4 border-b border-gray-100 flex-none`}>
         <h2
-          className="text-[14px] sm:text-base font-black text-gray-900 leading-tight line-clamp-2 uppercase tracking-tight wrap-break-words"
+          className="text-[14px] sm:text-base font-black text-gray-900 leading-tight line-clamp-2 uppercase tracking-tight wrap-break-words pr-10 sm:pr-11"
           title={displayTitle}
         >
           {displayTitle}

@@ -11,7 +11,6 @@ function BottomNav() {
     { to: "/home",        icon: "🏠", label: "Home"      },
     { to: "/biblioteca",  icon: "📚", label: "Biblioteca" },
     { to: "/archivio",    icon: "🗂️",  label: "Archivio"  },
-    { to: "/listletture", icon: "📖", label: "Diario"    },
     { to: "/profile",     icon: "👤", label: "Profilo"   },
   ];
 

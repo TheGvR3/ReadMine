@@ -1,12 +1,66 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
 import Navbar from "../components/Navbar";
 import { secureFetch } from "../utils/secureFetch";
 import MioDiario from "../components/MioDiario";
-import { useAuth } from "../context/AuthContext"; // Importiamo l'Auth globale!
+import { useAuth } from "../context/AuthContext";
 
-// ─── Card Opera (Animata) ─────────────────────────────────────────────────────
+// ─── Tile statistica (numero grande + label) ─────────────────────────────────
+function StatTile({ icon, value, label, accent = "blue" }) {
+  const accents = {
+    blue:    "from-blue-50 to-indigo-50 text-blue-700 border-blue-100",
+    emerald: "from-emerald-50 to-teal-50 text-emerald-700 border-emerald-100",
+    amber:   "from-amber-50 to-yellow-50 text-amber-700 border-amber-100",
+    violet:  "from-violet-50 to-purple-50 text-violet-700 border-violet-100",
+  };
+  return (
+    <div className={`bg-linear-to-br ${accents[accent]} border rounded-2xl p-3 sm:p-4 shadow-sm`}>
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-base sm:text-lg" aria-hidden="true">{icon}</span>
+        <span className="text-[10px] font-black uppercase tracking-widest opacity-80 truncate">
+          {label}
+        </span>
+      </div>
+      <div className="text-2xl sm:text-3xl font-black leading-none">
+        {value}
+      </div>
+    </div>
+  );
+}
+
+// ─── Tile categoria (Opere/Autori/Serie/Generi) ──────────────────────────────
+function CategoryTile({ icon, label, count, linkTo, index = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { amount: 0.1, triggerOnce: true });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 10 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Link
+        to={linkTo}
+        className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all active:scale-[0.97] group min-h-16"
+      >
+        <span className="text-2xl shrink-0" aria-hidden="true">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-black text-gray-900 group-hover:text-blue-700 transition-colors uppercase tracking-wider">
+            {label}
+          </div>
+          <div className="text-[11px] font-bold text-gray-400">
+            {count} {count === 1 ? "elemento" : "elementi"}
+          </div>
+        </div>
+        <span className="text-gray-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all text-lg font-bold">→</span>
+      </Link>
+    </motion.div>
+  );
+}
+
+// ─── Card Opera "poster" in griglia ──────────────────────────────────────────
 function OperaCard({ book, index = 0 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { amount: 0.1, triggerOnce: true });
@@ -14,15 +68,13 @@ function OperaCard({ book, index = 0 }) {
   return (
     <motion.div
       ref={ref}
-      initial={{ scale: 0.8, opacity: 0, y: 15 }}
-      animate={inView ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.8, opacity: 0, y: 15 }}
-      transition={{ duration: 0.4, delay: index * 0.05, type: "spring", stiffness: 300, damping: 24 }}
-      // Aggiunto active:scale-[0.97] per il feedback tattile su mobile
-      className="group w-[calc(50%-0.375rem)] sm:w-[130px] bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col overflow-hidden active:scale-[0.97]"
+      initial={{ scale: 0.92, opacity: 0, y: 10 }}
+      animate={inView ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.92, opacity: 0, y: 10 }}
+      transition={{ duration: 0.35, delay: index * 0.04, type: "spring", stiffness: 300, damping: 24 }}
+      className="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col overflow-hidden active:scale-[0.97]"
     >
       <Link to={`/opere/${book.id_opera}`} className="w-full h-full flex flex-col p-3">
-        {/* Corretto bg-linear in bg-gradient */}
-        <div className="w-full aspect-square bg-linear-to-br from-blue-50 to-indigo-100 rounded-xl mb-3 flex items-center justify-center border border-gray-100 group-hover:scale-105 transition-transform duration-300">
+        <div className="w-full aspect-2/3 bg-linear-to-br from-blue-50 to-indigo-100 rounded-xl mb-3 flex items-center justify-center border border-gray-100 group-hover:scale-105 transition-transform duration-300">
           <span className="text-3xl drop-shadow-sm">📕</span>
         </div>
         <p className="text-[13px] sm:text-sm font-bold text-gray-800 group-hover:text-blue-600 line-clamp-2 leading-snug mb-1 mt-auto">
@@ -38,65 +90,89 @@ function OperaCard({ book, index = 0 }) {
   );
 }
 
-// ─── Componente Pillola Generico (per Autori, Serie, Generi) ──────────────────
-// Ho unificato le pillole per evitare di ripetere lo stesso codice tre volte!
-function AnimatedPill({ item, linkTo, label, index = 0 }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { amount: 0.1, triggerOnce: true });
-
+// ─── Header sezione ──────────────────────────────────────────────────────────
+function SectionHeader({ title, emoji, linkTo }) {
   return (
-    <motion.div
-      ref={ref}
-      initial={{ scale: 0.8, opacity: 0, y: 10 }}
-      animate={inView ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.8, opacity: 0, y: 10 }}
-      transition={{ duration: 0.3, delay: index * 0.05, type: "spring", stiffness: 300, damping: 24 }}
-    >
-      <Link
-        to={linkTo}
-        className="block px-4 py-2 bg-white border border-gray-100 rounded-xl text-[13px] sm:text-sm font-bold text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-all shadow-sm active:scale-95 line-clamp-1"
-      >
-        {label}
-      </Link>
-    </motion.div>
+    <div className="flex items-center justify-between mb-3 px-4 sm:px-0">
+      <h2 className="text-xs sm:text-sm font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
+        <span className="text-base">{emoji}</span> {title}
+      </h2>
+      {linkTo && (
+        <Link
+          to={linkTo}
+          aria-label={`Vedi tutti ${title}`}
+          className="text-blue-600 hover:text-blue-800 text-lg font-black px-2 py-1 active:scale-90 transition-transform"
+        >
+          →
+        </Link>
+      )}
+    </div>
   );
 }
 
-// ─── Row section ──────────────────────────────────────────────────────────────
-function Row({ title, emoji, linkTo, linkLabel, children }) {
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+function SkeletonStats() {
   return (
-    <section className="mb-10 px-4 sm:px-0 overflow-hidden">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm sm:text-base font-black text-gray-800 uppercase tracking-widest flex items-center gap-2">
-          <span className="text-lg">{emoji}</span> {title}
-        </h2>
-        <Link
-          to={linkTo}
-          className="text-[10px] sm:text-xs font-black text-blue-600 hover:text-blue-800 hover:underline uppercase tracking-widest px-2 py-1"
-        >
-          {linkLabel}
-        </Link>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        {children}
-      </div>
-    </section>
+    <div className="grid grid-cols-2 gap-3 mb-8 px-4 sm:px-0">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-20 bg-white border border-gray-100 rounded-2xl animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function SkeletonCategories() {
+  return (
+    <div className="grid grid-cols-2 gap-3 mb-8 px-4 sm:px-0">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-16 bg-white border border-gray-100 rounded-2xl animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function SkeletonOpereGrid() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4 sm:px-0">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="bg-white border border-gray-100 rounded-2xl p-3">
+          <div className="w-full aspect-2/3 bg-gray-100 rounded-xl mb-3 animate-pulse" />
+          <div className="h-3 bg-gray-100 rounded animate-pulse mb-2" />
+          <div className="h-2 w-2/3 bg-gray-100 rounded animate-pulse" />
+        </div>
+      ))}
+    </div>
   );
 }
 
 // ─── Home ─────────────────────────────────────────────────────────────────────
 function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth(); // Recuperiamo l'utente dal Context globale
+  const { user } = useAuth();
 
   const [books, setBooks] = useState([]);
   const [autori, setAutori] = useState([]);
   const [serie, setSerie] = useState([]);
   const [generi, setGeneri] = useState([]);
-  const [ultimeLetture, setUltimeLetture] = useState([]);
+  const [tutteLetture, setTutteLetture] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const shuffle = (arr, n) => [...arr].sort(() => 0.5 - Math.random()).slice(0, n);
+
+  // Statistiche utente derivate dalle letture
+  const stats = useMemo(() => {
+    const inCorso     = tutteLetture.filter((l) => l.stato === "in_corso").length;
+    const completate  = tutteLetture.filter((l) => l.stato === "finito").length;
+    const inCoda      = tutteLetture.filter((l) => l.stato === "da_iniziare").length;
+    const valutazioni = tutteLetture.map((l) => Number(l.valutazione)).filter((v) => v > 0);
+    const media       = valutazioni.length
+      ? (valutazioni.reduce((a, b) => a + b, 0) / valutazioni.length).toFixed(1)
+      : "—";
+    return { inCorso, completate, inCoda, media };
+  }, [tutteLetture]);
+
+  const ultimeLetture = useMemo(() => tutteLetture.slice(0, 3), [tutteLetture]);
 
   useEffect(() => {
     const load = async () => {
@@ -104,16 +180,14 @@ function Home() {
       setError("");
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        
-        // Fetch dei cataloghi pubblici
+
         const promises = [
-          secureFetch(`${baseUrl}/opere`, { method: "GET" }, navigate),
+          secureFetch(`${baseUrl}/opere`,  { method: "GET" }, navigate),
           secureFetch(`${baseUrl}/autori`, { method: "GET" }, navigate),
-          secureFetch(`${baseUrl}/serie`, { method: "GET" }, navigate),
+          secureFetch(`${baseUrl}/serie`,  { method: "GET" }, navigate),
           secureFetch(`${baseUrl}/genere`, { method: "GET" }, navigate),
         ];
 
-        // Se l'utente è loggato, fetch delle letture
         const currentUserId = user?.id || user?.id_utente;
         if (currentUserId) {
           promises.push(
@@ -122,15 +196,14 @@ function Home() {
         }
 
         const [resOpere, resAutori, resSerie, resGeneri, resLetture] = await Promise.all(promises);
-        
-        if (resOpere?.ok) setBooks(await resOpere.json());
+
+        if (resOpere?.ok)  setBooks(await resOpere.json());
         if (resAutori?.ok) setAutori(await resAutori.json());
-        if (resSerie?.ok) setSerie(await resSerie.json());
+        if (resSerie?.ok)  setSerie(await resSerie.json());
         if (resGeneri?.ok) setGeneri(await resGeneri.json());
-        
+
         if (currentUserId && resLetture?.ok) {
-          const datiLetture = await resLetture.json();
-          setUltimeLetture(datiLetture.slice(0, 3));
+          setTutteLetture(await resLetture.json());
         }
       } catch {
         setError("Errore di connessione al server.");
@@ -138,107 +211,105 @@ function Home() {
         setLoading(false);
       }
     };
-    
-    // Ricarica se l'utente cambia
+
     load();
   }, [navigate, user]);
 
+  const categories = [
+    { icon: "📕", label: "Opere",  count: books.length,  linkTo: "/listopere"  },
+    { icon: "✍️", label: "Autori", count: autori.length, linkTo: "/listautori" },
+    { icon: "📚", label: "Serie",  count: serie.length,  linkTo: "/listserie"  },
+    { icon: "🎭", label: "Generi", count: generi.length, linkTo: "/listgeneri" },
+  ];
+
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans">
-      <Navbar /> {/* Niente props! */}
+      <Navbar />
 
-      {/* Spazio inferiore per la Bottom Nav (pb-24) */}
-      <div className="max-w-4xl mx-auto px-0 sm:px-6 pt-6 pb-24 md:py-10">
-        
-        {/* ── INTESTAZIONE MINIMAL ────────────────────────────────────────── */}
-        <div className="px-4 sm:px-0 mb-8 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-widest font-black mb-1">
-              ReadMine
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-              {user ? `Ciao, ${user.nome ?? user.username} 👋` : "Dashboard"}
-            </h1>
-          </div>
+      <div className="max-w-4xl mx-auto pt-4 sm:pt-6 pb-24 md:py-10">
+
+        {/* ── HEADER ──────────────────────────────────────────────────────── */}
+        <div className="px-4 sm:px-0 mb-6 flex items-center justify-between gap-3">
+          <h1 className="text-xl sm:text-3xl font-black text-gray-900 tracking-tight truncate">
+            {user ? (
+              <>Ciao, <span className="text-blue-600">{user.nome ?? user.username}</span> 👋</>
+            ) : (
+              "Dashboard"
+            )}
+          </h1>
           {user && !user.editor && (
             <button
               onClick={() => navigate("/profile")}
-              className="text-[10px] sm:text-xs font-black text-blue-700 bg-blue-100 border border-blue-200 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-blue-200 hover:border-blue-300 transition-colors active:scale-95 shadow-sm uppercase tracking-widest"
+              aria-label="Diventa editor"
+              className="shrink-0 inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-black text-blue-700 bg-blue-100 border border-blue-200 px-3 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-blue-200 hover:border-blue-300 transition-colors active:scale-95 shadow-sm uppercase tracking-widest"
             >
-              Diventa Editor
+              <span aria-hidden="true">✨</span>
+              <span>Editor</span>
             </button>
           )}
         </div>
 
-        {/* ── LOADING / ERROR ─────────────────────────────────────────────── */}
-        {loading && (
-          <div className="text-center py-20 flex flex-col items-center">
-            <div className="inline-block w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">
-              Caricamento in corso...
-            </p>
-          </div>
-        )}
-        
         {error && (
           <div className="mx-4 sm:mx-0 mb-6 bg-red-50 border border-red-100 rounded-2xl p-5 text-center shadow-sm">
-            <p className="text-red-600 text-xs font-black uppercase tracking-widest">
-              ⚠️ {error}
-            </p>
+            <p className="text-red-600 text-xs font-black uppercase tracking-widest">⚠️ {error}</p>
           </div>
+        )}
+
+        {loading && (
+          <>
+            <div className="mb-8 px-4 sm:px-0">
+              <div className="h-5 w-32 bg-gray-100 rounded animate-pulse mb-3" />
+              <div className="h-28 w-full bg-white border border-gray-100 rounded-2xl animate-pulse" />
+            </div>
+            <SkeletonStats />
+            <SkeletonCategories />
+            <SkeletonOpereGrid />
+          </>
         )}
 
         {!loading && !error && (
           <>
-            {/* Componente esterno (sperando che anche lui sia responsive!) */}
-            <div className="mb-10 px-4 sm:px-0">
-               <MioDiario ultimeLetture={ultimeLetture} />
+            {/* ── MIO DIARIO ─────────────────────────────────────────────── */}
+            <div className="mb-8 px-4 sm:px-0">
+              <MioDiario ultimeLetture={ultimeLetture} />
             </div>
-            
-            {/* ── OPERE ───────────────────────────────────────────────────── */}
-            <Row title="Scopri Opere" emoji="🎲" linkTo="/listopere" linkLabel="Tutte">
-              {shuffle(books, 6).map((b, i) => (
-                <OperaCard key={b.id_opera} book={b} index={i} />
-              ))}
-            </Row>
 
-            {/* ── AUTORI ──────────────────────────────────────────────────── */}
-            <Row title="Autori" emoji="✍️" linkTo="/listautori" linkLabel="Tutti">
-              {shuffle(autori, 6).map((a, i) => (
-                <AnimatedPill 
-                  key={a.id_autore} 
-                  linkTo={`/autore/${a.id_autore}`} // Corretto al singolare come in App.js
-                  label={a.nome_autore} 
-                  index={i} 
-                />
-              ))}
-            </Row>
+            {/* ── STATISTICHE UTENTE ─────────────────────────────────────── */}
+            {user && tutteLetture.length > 0 && (
+              <section className="mb-8">
+                <SectionHeader title="Le tue statistiche" emoji="📊" />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4 sm:px-0">
+                  <StatTile icon="📖" label="In lettura"  value={stats.inCorso}    accent="emerald" />
+                  <StatTile icon="✅" label="Completate"  value={stats.completate} accent="blue"    />
+                  <StatTile icon="🕐" label="In coda"     value={stats.inCoda}     accent="violet"  />
+                  <StatTile icon="⭐" label="Voto medio"  value={stats.media}      accent="amber"   />
+                </div>
+              </section>
+            )}
 
-            {/* ── SERIE ───────────────────────────────────────────── */}
-            <Row title="Serie" emoji="📚" linkTo="/listserie" linkLabel="Tutte">
-              {shuffle(serie, 6).map((s, i) => (
-                <AnimatedPill 
-                  key={s.id_serie} 
-                  linkTo={`/serie/${s.id_serie}`} 
-                  label={s.nome_serie} 
-                  index={i} 
-                />
-              ))}
-            </Row>
+            {/* ── ESPLORA (4 tile categoria) ─────────────────────────────── */}
+            <section className="mb-8">
+              <SectionHeader title="Esplora il catalogo" emoji="🧭" />
+              <div className="grid grid-cols-2 gap-3 px-4 sm:px-0">
+                {categories.map((c, i) => (
+                  <CategoryTile key={c.label} {...c} index={i} />
+                ))}
+              </div>
+            </section>
 
-            {/* ── GENERI ───────────────────────────────────────────── */}
-            <Row title="Generi" emoji="🎭" linkTo="/listgeneri" linkLabel="Tutti">
-              {shuffle(generi, 6).map((g, i) => (
-                <AnimatedPill 
-                  key={g.id_genere} 
-                  linkTo={`/genere/${g.id_genere}`} 
-                  label={g.nome_genere} 
-                  index={i} 
-                />
-              ))}
-            </Row>
+            {/* ── SUGGERITI PER TE (griglia verticale) ───────────────────── */}
+            {books.length > 0 && (
+              <section className="mb-8">
+                <SectionHeader title="Suggeriti per te" emoji="✨" linkTo="/listopere" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 px-4 sm:px-0">
+                  {shuffle(books, 6).map((b, i) => (
+                    <OperaCard key={b.id_opera} book={b} index={i} />
+                  ))}
+                </div>
+              </section>
+            )}
 
-            {/* ── GUIDA ───────────────────────────────────────────────────── */}
+            {/* ── GUIDA ──────────────────────────────────────────────────── */}
             <div className="mx-4 sm:mx-0 mt-8">
               <Link
                 to="/guide"
@@ -247,14 +318,35 @@ function Home() {
                 <span className="text-xs sm:text-sm font-black text-gray-700 group-hover:text-blue-700 transition-colors flex items-center gap-3 uppercase tracking-widest">
                   <span className="text-xl">❓</span> Guida all'utilizzo
                 </span>
-                <span className="text-gray-300 group-hover:text-blue-600 text-xl transition-transform transform group-hover:translate-x-1 font-bold">
-                  →
-                </span>
+                <span className="text-gray-300 group-hover:text-blue-600 text-xl transition-transform transform group-hover:translate-x-1 font-bold">→</span>
               </Link>
             </div>
           </>
         )}
       </div>
+
+      {/* ── FAB Aggiungi lettura (mobile) ─────────────────────────────────── */}
+      {user && (
+        <Link
+          to="/createlettura"
+          aria-label="Aggiungi nuova lettura"
+          className="md:hidden fixed right-4 bottom-20 z-40 w-14 h-14 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-600/40 ring-4 ring-white/60 flex items-center justify-center active:scale-90 hover:scale-105 transition-all duration-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="w-6 h-6"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </Link>
+      )}
     </div>
   );
 }
