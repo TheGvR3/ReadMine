@@ -1,153 +1,138 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import AsyncSelect from "react-select/async";
 import Navbar from "../../../components/Navbar";
 import Button from "../../../components/ui/Button";
 import { secureFetch } from "../../../utils/secureFetch";
 
+// Stile AsyncSelect coerente
+const selectStyles = {
+  control: (base) => ({
+    ...base,
+    borderRadius: "0.75rem",
+    padding: "2px",
+    borderColor: "#e5e7eb",
+    "&:hover": { borderColor: "#3b82f6" },
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "#eff6ff",
+    borderRadius: "0.5rem",
+    color: "#1e40af",
+    fontWeight: "700",
+  }),
+};
+
 function CreateOpera() {
   const navigate = useNavigate();
 
-  // --- STATI DELLA UI ---
-  const [activeTab, setActiveTab] = useState("manual"); // "manual" o "google"
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [success, setSuccess] = useState("");
 
-  // --- STATI GOOGLE BOOKS ---
-  const [googleQuery, setGoogleQuery] = useState("");
-  const [googleResults, setGoogleResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [tipi, setTipi] = useState([]);
+  const [titolo, setTitolo] = useState("");
+  const [tipoOpera, setTipoOpera] = useState("");
+  const [statoOpera, setStatoOpera] = useState("finito");
+  const [linguaOriginale, setLinguaOriginale] = useState("it");
+  const [descrizione, setDescrizione] = useState("");
+  const [numeroVolume, setNumeroVolume] = useState("");
+  const [selectedSerie, setSelectedSerie] = useState(null);
+  const [selectedAutori, setSelectedAutori] = useState([]);
+  const [selectedGeneri, setSelectedGeneri] = useState([]);
 
-  // --- STATI FORM (Allineati al tuo backend Node.js) ---
-  const [formData, setFormData] = useState({
-    titolo: "",
-    tipo_opera: 1, // ID di default per "Libro" (aggiusta in base al tuo DB)
-    anno_pubblicazione: "",
-    editore: "",
-    lingua_originale: "it",
-    stato_opera: "finito",
-    id_serie: "",
-    autori: [], // Qui andranno gli ID
-    generi: [], // Qui andranno gli ID
-    descrizione: "", // Aggiunto in caso tu voglia salvare la trama in futuro
-  });
-
-  // Gestione Input del Form
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // ─── 1. MOTORE DI RICERCA GOOGLE BOOKS ──────────────────────────────────────
-  const searchGoogleBooks = async (e) => {
-    e.preventDefault();
-    if (!googleQuery.trim()) return;
-
-    setIsSearching(true);
-    setError(""); // Puliamo eventuali vecchi errori
-    setGoogleResults([]); // Puliamo i vecchi risultati
-
-    try {
-      console.log("Sto cercando su Google Books:", googleQuery); // <-- SPIA CONSOLE
-
-      // Prendi la chiave dall'ambiente
-      const apiKey = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
-
-      // Aggiungi &key=${apiKey} alla fine dell'URL
-      const res = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(googleQuery)}&maxResults=10&key=${apiKey}`,
+  // Carica tipi al mount
+  useEffect(() => {
+    (async () => {
+      const res = await secureFetch(
+        `${import.meta.env.VITE_API_BASE_URL}/tipo`,
+        { method: "GET" },
+        navigate
       );
-      
-      if (!res.ok) {
-        throw new Error(`Google ha risposto con errore: ${res.status}`);
-      }
+      if (res?.ok) setTipi(await res.json());
+    })();
+  }, [navigate]);
 
-      const data = await res.json();
-      console.log("Risposta di Google:", data); // <-- SPIA CONSOLE
-
-      if (data.items && data.items.length > 0) {
-        setGoogleResults(data.items);
-      } else {
-        // Se l'array è vuoto, avvisiamo l'utente
-        setError(
-          `Nessun libro trovato per "${googleQuery}". Prova a cambiare i termini di ricerca.`,
-        );
-      }
-    } catch (err) {
-      console.error("Errore Fetch Google:", err);
-      setError(
-        "Errore di rete durante la ricerca su Google Books. Controlla la console (F12).",
-      );
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // ─── 2. IMPORTAZIONE DATI DA GOOGLE AL FORM ────────────────────────────────
-  const importFromGoogle = (book) => {
-    const info = book.volumeInfo;
-
-    // Estrapoliamo l'anno dalla data (Google dà formati tipo "1997" o "1997-06-26")
-    const anno = info.publishedDate ? info.publishedDate.substring(0, 4) : "";
-
-    // Aggiorniamo il form con i dati di Google
-    setFormData((prev) => ({
-      ...prev,
-      titolo: info.title || "",
-      editore: info.publisher || "",
-      anno_pubblicazione: anno,
-      lingua_originale: info.language || "",
-      descrizione: info.description || "",
-    }));
-
-    // Avvisiamo l'utente di collegare gli autori e torniamo al form
-    alert(
-      `Importato: ${info.title}!\nRicordati di selezionare manualmente l'Autore e il Genere dal tuo database.`,
+  const loadAutori = async (input) => {
+    if (!input) return [];
+    const res = await secureFetch(
+      `${import.meta.env.VITE_API_BASE_URL}/autori/search/${encodeURIComponent(input)}`,
+      { method: "GET" },
+      navigate
     );
-    setActiveTab("manual");
+    if (!res?.ok) return [];
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : data.data || [];
+    return list.map((a) => ({ value: a.id_autore, label: a.nome_autore }));
   };
 
-  // ─── 3. SALVATAGGIO NEL TUO DATABASE NODE.JS ───────────────────────────────
+  const loadGeneri = async (input) => {
+    if (!input) return [];
+    const res = await secureFetch(
+      `${import.meta.env.VITE_API_BASE_URL}/genere/search/${encodeURIComponent(input)}`,
+      { method: "GET" },
+      navigate
+    );
+    if (!res?.ok) return [];
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : data.data || [];
+    return list.map((g) => ({ value: g.id_genere, label: g.nome_genere }));
+  };
+
+  const loadSerie = async (input) => {
+    if (!input) return [];
+    const res = await secureFetch(
+      `${import.meta.env.VITE_API_BASE_URL}/serie/search/${encodeURIComponent(input)}`,
+      { method: "GET" },
+      navigate
+    );
+    if (!res?.ok) return [];
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : data.data || [];
+    return list.map((s) => ({ value: s.id_serie, label: s.nome_serie }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.titolo) {
-      setError("Il titolo è obbligatorio.");
-      return;
-    }
+    setError("");
+    setSuccess("");
+
+    if (!titolo.trim()) return setError("Titolo obbligatorio");
+    if (!tipoOpera) return setError("Tipo opera obbligatorio");
 
     setLoading(true);
-    setError("");
-
     try {
-      // Prepariamo i dati convertendo i numeri come si aspetta il backend
-      const dataToSend = {
-        ...formData,
-        tipo_opera: parseInt(formData.tipo_opera),
-        anno_pubblicazione: formData.anno_pubblicazione
-          ? parseInt(formData.anno_pubblicazione)
-          : null,
-        id_serie: formData.id_serie ? parseInt(formData.id_serie) : null,
+      const body = {
+        titolo: titolo.trim(),
+        tipo_opera: parseInt(tipoOpera, 10),
+        stato_opera: statoOpera,
+        lingua_originale: linguaOriginale || null,
+        descrizione_opera: descrizione || null,
+        numero_volume: numeroVolume ? parseInt(numeroVolume, 10) : null,
+        id_serie: selectedSerie?.value || null,
+        autori: selectedAutori.map((a) => a.value),
+        generi: selectedGeneri.map((g) => g.value),
       };
 
-      const response = await secureFetch(
+      const res = await secureFetch(
         `${import.meta.env.VITE_API_BASE_URL}/opere`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(dataToSend),
+          body: JSON.stringify(body),
         },
-        navigate,
+        navigate
       );
 
-      if (response?.ok) {
-        setSuccessMessage("Opera creata con successo nel tuo database!");
-        setTimeout(() => navigate("/listopere"), 1500);
-      } else {
-        const err = await response.json().catch(() => ({}));
-        setError(err.error || "Errore durante la creazione dell'opera.");
+      const data = await res?.json().catch(() => ({}));
+      if (!res?.ok) {
+        throw new Error(data?.error || `HTTP ${res?.status}`);
       }
+
+      setSuccess("Opera creata. Aggiungi un'edizione dopo, se serve.");
+      setTimeout(() => navigate(`/opere/${data.id_opera}`), 1500);
     } catch (err) {
-      setError("Errore di connessione al server.");
+      setError(err.message || "Errore creazione opera");
     } finally {
       setLoading(false);
     }
@@ -157,241 +142,203 @@ function CreateOpera() {
     <div className="min-h-screen bg-[#f8fafc]">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 pt-6 pb-24 md:py-10">
-        {/* Intestazione */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-            Nuova Opera
-          </h1>
-          <p className="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">
-            Aggiungi al catalogo
-          </p>
+      <div className="max-w-3xl mx-auto px-4 pt-6 pb-24 md:py-10">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Nuova Opera</h1>
+            <p className="text-gray-500 font-bold text-xs uppercase tracking-widest mt-1">
+              Solo dati opera-level (autori, generi, serie). Le edizioni si aggiungono dopo.
+            </p>
+          </div>
+          <Button variant="outlineGreen" to="/import-google">
+            🔍 Importa da Google Books
+          </Button>
         </div>
 
-        {/* TABS di Navigazione */}
-        <div className="flex bg-gray-200/50 p-1 rounded-xl sm:rounded-2xl mb-8 w-full sm:w-max">
-          <button
-            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "manual" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-            onClick={() => setActiveTab("manual")}
-          >
-            ✍️ Compila Form
-          </button>
-          <button
-            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "google" ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-            onClick={() => setActiveTab("google")}
-          >
-            🔍 Importa da Google
-          </button>
-        </div>
-
-        {/* MESSAGGI DI STATO */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest text-center animate-shake">
+          <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest text-center">
             ⚠️ {error}
           </div>
         )}
-        {successMessage && (
-          <div className="mb-6 p-4 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black uppercase tracking-widest text-center">
-            ✅ {successMessage}
+        {success && (
+          <div className="mb-4 p-4 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black uppercase tracking-widest text-center">
+            ✓ {success}
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* ───────────────────────────────────────────────────────────────── */}
-          {/* TAB 1: RICERCA GOOGLE BOOKS */}
-          {/* ───────────────────────────────────────────────────────────────── */}
-          {activeTab === "google" && (
-            <div className="p-6 md:p-8 bg-blue-50/30">
-              <form
-                onSubmit={searchGoogleBooks}
-                className="flex flex-col sm:flex-row gap-3 mb-8"
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-5"
+        >
+          <div className="space-y-1">
+            <Label>Titolo *</Label>
+            <input
+              type="text"
+              value={titolo}
+              onChange={(e) => setTitolo(e.target.value)}
+              required
+              className="input-base"
+              placeholder="Il nome dell'opera"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label>Tipo opera *</Label>
+              <select
+                value={tipoOpera}
+                onChange={(e) => setTipoOpera(e.target.value)}
+                required
+                className="input-base"
               >
-                <input
-                  type="text"
-                  placeholder="Es. Il Signore degli Anelli, J.R.R. Tolkien..."
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold text-gray-700"
-                  value={googleQuery}
-                  onChange={(e) => setGoogleQuery(e.target.value)}
-                />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSearching}
-                  className="py-3"
-                >
-                  {isSearching ? "Cercando..." : "Cerca online"}
-                </Button>
-              </form>
-
-              {/* RISULTATI GOOGLE */}
-              <div className="space-y-3">
-                {googleResults.length > 0 && (
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                    Risultati da Google:
-                  </p>
-                )}
-
-                {googleResults.map((book) => {
-                  const info = book.volumeInfo;
-                  // Google a volte usa http invece di https per le immagini, forziamo l'https per sicurezza
-                  let thumb =
-                    info.imageLinks?.smallThumbnail ||
-                    "https://via.placeholder.com/80x120?text=No+Cover";
-                  thumb = thumb.replace("http:", "https:");
-
-                  return (
-                    <div
-                      key={book.id}
-                      className="flex gap-4 p-4 bg-white border border-gray-100 rounded-xl shadow-sm items-center"
-                    >
-                      <img
-                        src={thumb}
-                        alt="Cover"
-                        className="w-12 h-16 sm:w-16 sm:h-24 object-cover rounded shadow-sm"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-black text-gray-900 text-sm sm:text-base line-clamp-1">
-                          {info.title}
-                        </h3>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider line-clamp-1">
-                          {info.authors?.join(", ") || "Autore sconosciuto"}
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-1">
-                          {info.publisher || "Editore N/A"} •{" "}
-                          {info.publishedDate?.substring(0, 4) || "Anno N/A"}
-                        </p>
-                      </div>
-                      <Button
-                        variant="success"
-                        onClick={() => importFromGoogle(book)}
-                        className="text-[10px] sm:text-xs shrink-0"
-                      >
-                        Importa
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
+                <option value="">Seleziona tipo</option>
+                {tipi.map((t) => (
+                  <option key={t.id_tipo} value={t.id_tipo}>
+                    {t.nome_tipo}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
 
-          {/* ───────────────────────────────────────────────────────────────── */}
-          {/* TAB 2: INSERIMENTO MANUALE (Form del tuo DB) */}
-          {/* ───────────────────────────────────────────────────────────────── */}
-          {activeTab === "manual" && (
-            <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* TITOLO */}
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    Titolo *
-                  </label>
-                  <input
-                    type="text"
-                    name="titolo"
-                    required
-                    value={formData.titolo}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 font-black text-gray-800 text-lg"
-                    placeholder="Il nome dell'opera"
-                  />
-                </div>
+            <div className="space-y-1">
+              <Label>Stato pubblicazione</Label>
+              <select
+                value={statoOpera}
+                onChange={(e) => setStatoOpera(e.target.value)}
+                className="input-base"
+              >
+                <option value="finito">✅ Conclusa</option>
+                <option value="in_corso">⏳ In pubblicazione</option>
+              </select>
+            </div>
+          </div>
 
-                {/* EDITORE */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    Editore
-                  </label>
-                  <input
-                    type="text"
-                    name="editore"
-                    value={formData.editore}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 font-medium text-gray-700 text-sm sm:text-base"
-                  />
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label>Lingua originale</Label>
+              <input
+                type="text"
+                value={linguaOriginale}
+                onChange={(e) => setLinguaOriginale(e.target.value)}
+                placeholder="es. it, en, ja"
+                className="input-base"
+              />
+            </div>
 
-                {/* ANNO */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    Anno Pubblicazione
-                  </label>
-                  <input
-                    type="number"
-                    name="anno_pubblicazione"
-                    value={formData.anno_pubblicazione}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 text-sm sm:text-base"
-                  />
-                </div>
+            <div className="space-y-1">
+              <Label>N. volume nella serie</Label>
+              <input
+                type="number"
+                min="1"
+                value={numeroVolume}
+                onChange={(e) => setNumeroVolume(e.target.value)}
+                className="input-base"
+              />
+            </div>
+          </div>
 
-                {/* STATO */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    Stato Opera
-                  </label>
-                  <select
-                    name="stato_opera"
-                    value={formData.stato_opera}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 text-base sm:text-sm"
-                  >
-                    <option value="finito">✅ Concluso</option>
-                    <option value="in_corso">⏳ In corso</option>
-                  </select>
-                </div>
+          <div className="space-y-1">
+            <Label>Descrizione</Label>
+            <textarea
+              value={descrizione}
+              onChange={(e) => setDescrizione(e.target.value)}
+              rows={4}
+              className="input-base"
+              placeholder="Trama, abstract, ecc."
+            />
+          </div>
 
-                {/* LINGUA */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    Lingua Originale
-                  </label>
-                  <input
-                    type="text"
-                    name="lingua_originale"
-                    value={formData.lingua_originale}
-                    onChange={handleChange}
-                    placeholder="es. it, en, jp..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 text-sm sm:text-base"
-                  />
-                </div>
+          <div className="pt-4 border-t border-gray-50 space-y-4">
+            <div className="space-y-1">
+              <Label>Autori</Label>
+              <AsyncSelect
+                isMulti
+                cacheOptions
+                defaultOptions
+                value={selectedAutori}
+                loadOptions={loadAutori}
+                onChange={(sel) => setSelectedAutori(sel || [])}
+                styles={selectStyles}
+                placeholder="Cerca autori esistenti..."
+              />
+            </div>
 
-                {/* TIPO OPERA E COLLEGAMENTI (Mockup: Qui dovresti mettere i tuoi Select o AsyncSelect per Autori, Generi, Tipo) */}
-                <div className="md:col-span-2 p-5 bg-yellow-50 border border-yellow-100 rounded-xl">
-                  <p className="text-yellow-700 text-xs font-black uppercase tracking-widest mb-1">
-                    🔗 Dati Relazionali
-                  </p>
-                  <p className="text-yellow-600 text-sm">
-                    Qui dovrai inserire i tuoi componenti{" "}
-                    <code>AsyncSelect</code> per mappare gli ID di: <br />
-                    <strong>Autori, Generi, Tipo Opera e Serie.</strong>
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-1">
+              <Label>Generi</Label>
+              <AsyncSelect
+                isMulti
+                cacheOptions
+                defaultOptions
+                value={selectedGeneri}
+                loadOptions={loadGeneri}
+                onChange={(sel) => setSelectedGeneri(sel || [])}
+                styles={selectStyles}
+                placeholder="Cerca generi..."
+              />
+            </div>
 
-              {/* AZIONI */}
-              <div className="flex gap-3 pt-6 border-t border-gray-50">
-                <Button
-                  variant="outlineBlue"
-                  onClick={() => navigate(-1)}
-                  className="flex-1 bg-white border-gray-200"
-                >
-                  Annulla
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={loading}
-                  className="flex-2"
-                >
-                  {loading ? "Salvataggio..." : "Crea nel Database"}
-                </Button>
-              </div>
-            </form>
-          )}
-        </div>
+            <div className="space-y-1">
+              <Label>Serie</Label>
+              <AsyncSelect
+                cacheOptions
+                defaultOptions
+                value={selectedSerie}
+                loadOptions={loadSerie}
+                onChange={setSelectedSerie}
+                isClearable
+                styles={selectStyles}
+                placeholder="Cerca serie..."
+              />
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-700">
+            ℹ️ Editore, ISBN, anno e copertina sono dati di <strong>edizione</strong> — li aggiungi
+            dopo aver creato l'opera, oppure usa "Importa da Google Books" per fare tutto in un colpo.
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="outlineBlue"
+              onClick={() => navigate(-1)}
+              className="flex-1 bg-white"
+            >
+              Annulla
+            </Button>
+            <Button type="submit" variant="primary" disabled={loading} className="flex-2">
+              {loading ? "Salvataggio..." : "Crea opera"}
+            </Button>
+          </div>
+        </form>
       </div>
+
+      <style>{`
+        .input-base {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 0.75rem;
+          outline: none;
+          font-weight: 700;
+          color: #374151;
+          font-size: 0.875rem;
+        }
+        .input-base:focus {
+          background: white;
+          box-shadow: 0 0 0 2px #3b82f6;
+          border-color: transparent;
+        }
+      `}</style>
     </div>
+  );
+}
+
+function Label({ children }) {
+  return (
+    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">
+      {children}
+    </label>
   );
 }
 

@@ -24,6 +24,10 @@ import ListOperePage from "./features/letture/opere/ListOpere";
 import OperaDetail from "./features/letture/opere/OperaDetail";
 import CreateOpera from "./features/letture/opere/CreateOpera";
 import UpdateOpera from "./features/letture/opere/UpdateOpera";
+// Letture - Import Google Books
+import ImportGoogle from "./features/letture/import/ImportGoogle";
+import ImportPreview from "./features/letture/import/ImportPreview";
+import ImportBulk from "./features/letture/import/ImportBulk";
 // Letture - Serie
 import ListSeriePage from "./features/letture/serie/ListSerie";
 import SerieDetail from "./features/letture/serie/SerieDetail";
@@ -111,6 +115,10 @@ function App() {
         <Route path="/opere/:id_opera" element={<OperaDetail />} />
         <Route path="/createopera" element={<CreateOpera />} />
         <Route path="/updateopera/:id_opera" element={<UpdateOpera />} />
+        {/* Import da Google Books */}
+        <Route path="/import-google" element={<ImportGoogle />} />
+        <Route path="/import-google/preview/:volumeId" element={<ImportPreview />} />
+        <Route path="/import-google/bulk" element={<ImportBulk />} />
         {/* Rotte per le serie */}
         <Route path="/listserie" element={<ListSeriePage />} />
         <Route path="/serie/:id_serie" element={<SerieDetail />} />

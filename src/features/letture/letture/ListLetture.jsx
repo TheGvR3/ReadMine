@@ -336,7 +336,7 @@ function ListLetture() {
                       >
                         <td className="px-5 py-4">
                           <p className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-1">{l.opere?.titolo}</p>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{l.opere?.editore || "N/A"}</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{l.edizioni?.editore || "—"}</p>
                         </td>
                         <td className="px-5 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${styles.bg} ${styles.text}`}>
@@ -378,7 +378,7 @@ function ListLetture() {
                     <div className="flex justify-between items-start mb-3 gap-3">
                       <div className="flex-1">
                         <h3 className="text-sm font-black text-gray-800 leading-snug line-clamp-2">{l.opere?.titolo}</h3>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{l.opere?.editore || "N/A"}</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{l.edizioni?.editore || "—"}</p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider ${styles.bg} ${styles.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${styles.dot}`} />

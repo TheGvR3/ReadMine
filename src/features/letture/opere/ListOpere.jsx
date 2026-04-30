@@ -50,8 +50,9 @@ function ListOpere() {
 
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        // Limite alto per non perdere opere finché non implementiamo la paginazione UI
         const fetchPromises = [
-          secureFetch(`${baseUrl}/opere/`, { method: "GET" }, navigate),
+          secureFetch(`${baseUrl}/opere/?page=1&limit=100`, { method: "GET" }, navigate),
         ];
 
         const currentUserId = user?.id || user?.id_utente;
@@ -63,8 +64,15 @@ function ListOpere() {
 
         const [resOpere, resLetture] = await Promise.all(fetchPromises);
 
-        if (resOpere?.ok)   setBooks(await resOpere.json());
-        if (resLetture?.ok) setMyLetture(await resLetture.json());
+        if (resOpere?.ok) {
+          // Backend ora ritorna { data, total, page, limit, totalPages }
+          const json = await resOpere.json();
+          setBooks(Array.isArray(json) ? json : json.data || []);
+        }
+        if (resLetture?.ok) {
+          const j = await resLetture.json();
+          setMyLetture(Array.isArray(j) ? j : j.data || []);
+        }
       } catch {
         setError("Errore durante il caricamento dei dati.");
       } finally {
@@ -115,8 +123,9 @@ function ListOpere() {
         const serieB = b.serie || "zzz";
         return serieA.localeCompare(serieB);
       }
-      if (sortBy === "anno+") return (b.anno_pubblicazione || 0) - (a.anno_pubblicazione || 0);
-      if (sortBy === "anno-") return (a.anno_pubblicazione || 0) - (b.anno_pubblicazione || 0);
+      // Post-split: la view espone prima_edizione_anno (anno_pubblicazione vive su edizioni)
+      if (sortBy === "anno+") return (b.prima_edizione_anno || 0) - (a.prima_edizione_anno || 0);
+      if (sortBy === "anno-") return (a.prima_edizione_anno || 0) - (b.prima_edizione_anno || 0);
       return 0;
     });
   }, [books, searchTerm, selectedTipo, onlyMyDiario, letturaByOpera, sortBy]);
@@ -362,9 +371,8 @@ function ListOpere() {
                     <Link to={`/opere/${book.id_opera}`} className="block h-full active:scale-[0.98] transition-transform">
                       <Book
                         title={book.titolo}
-                        editore={book.editore}
                         author={book.autori}
-                        anno={book.anno_pubblicazione}
+                        anno={book.prima_edizione_anno}
                         stato_opera={book.stato_opera}
                         generi={book.generi}
                         tipo={book.tipo}
@@ -398,7 +406,6 @@ function ListOpere() {
                             state: {
                               id_opera: book.id_opera,
                               titolo: book.titolo,
-                              editore: book.editore,
                             },
                           });
                         }}

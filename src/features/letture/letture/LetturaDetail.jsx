@@ -111,9 +111,14 @@ function LetturaDetail() {
                         {lettura.opere?.titolo}
                       </h1>
                     </Link>
-                    <p className="mt-1.5 text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-wide">
-                      Editore: <span className="text-gray-800">{lettura.opere?.editore || "N/A"}</span>
-                    </p>
+                    {lettura.edizioni && (
+                      <p className="mt-1.5 text-gray-500 font-bold uppercase text-[10px] sm:text-xs tracking-wide">
+                        Edizione: <span className="text-gray-800">{lettura.edizioni.editore || "—"}</span>
+                        {lettura.edizioni.anno_pubblicazione && (
+                          <span className="text-gray-500"> ({lettura.edizioni.anno_pubblicazione})</span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   {/* AZIONI: Usiamo il componente Button! */}
@@ -139,18 +144,24 @@ function LetturaDetail() {
               {/* --- BODY CARD --- */}
               <div className="p-6 sm:p-8">
                 
-                {/* Stato e Data */}
-                <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-8 border-b border-gray-100 pb-8">
+                {/* Stato e Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 border-b border-gray-100 pb-8">
                   <div className="p-4 sm:p-5 rounded-xl bg-gray-50 border border-gray-100">
-                    <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Stato attuale</p>
+                    <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Stato</p>
                     <p className={`text-base sm:text-lg font-black uppercase tracking-wide ${styles.text}`}>
                       {lettura.stato?.replace("_", " ")}
                     </p>
                   </div>
                   <div className="p-4 sm:p-5 rounded-xl bg-gray-50 border border-gray-100">
-                    <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ultimo agg.</p>
+                    <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Inizio</p>
                     <p className="text-sm sm:text-base font-black text-gray-800">
-                      {lettura.data_lettura ? new Date(lettura.data_lettura).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : "--"}
+                      {lettura.data_inizio ? new Date(lettura.data_inizio).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : "—"}
+                    </p>
+                  </div>
+                  <div className="p-4 sm:p-5 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Fine</p>
+                    <p className="text-sm sm:text-base font-black text-gray-800">
+                      {lettura.data_fine ? new Date(lettura.data_fine).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : "—"}
                     </p>
                   </div>
                 </div>
