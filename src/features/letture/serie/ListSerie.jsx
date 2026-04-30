@@ -37,7 +37,8 @@ function ListSerie() {
         );
 
         if (response?.ok) {
-          setSeries(await response.json());
+          const payload = await response.json();
+          setSeries(Array.isArray(payload) ? payload : payload?.data ?? []);
         } else {
           throw new Error("Impossibile caricare le serie.");
         }

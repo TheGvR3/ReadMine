@@ -10,12 +10,27 @@ function ImportGoogle() {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState("q");
   const [results, setResults] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [lastQuery, setLastQuery] = useState(null); // { param, value } della ricerca corrente
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
 
   // Set di volumeId selezionati per import multiplo
   const [selected, setSelected] = useState(new Set());
+
+  const PAGE_SIZE = 40;
+
+  const fetchPage = async (paramKey, paramValue, startIndex) => {
+    const url = `${import.meta.env.VITE_API_BASE_URL}/import/google/search?${paramKey}=${encodeURIComponent(paramValue)}&maxResults=${PAGE_SIZE}&startIndex=${startIndex}`;
+    const res = await secureFetch(url, { method: "GET" }, navigate);
+    if (!res?.ok) {
+      const err = await res?.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res?.status}`);
+    }
+    return res.json();
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -24,21 +39,17 @@ function ImportGoogle() {
     setLoading(true);
     setError("");
     setResults([]);
+    setTotalItems(0);
     setSelected(new Set());
 
-    const param = mode === "isbn"
-      ? `isbn=${encodeURIComponent(query.trim())}`
-      : `q=${encodeURIComponent(query.trim())}`;
-    const url = `${import.meta.env.VITE_API_BASE_URL}/import/google/search?${param}&maxResults=40`;
+    const paramKey = mode === "isbn" ? "isbn" : "q";
+    const paramValue = query.trim();
 
     try {
-      const res = await secureFetch(url, { method: "GET" }, navigate);
-      if (!res?.ok) {
-        const err = await res?.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res?.status}`);
-      }
-      const data = await res.json();
+      const data = await fetchPage(paramKey, paramValue, 0);
       setResults(data.results || []);
+      setTotalItems(data.totalItems || 0);
+      setLastQuery({ paramKey, paramValue });
       setSearched(true);
     } catch (err) {
       setError(err.message || "Errore durante la ricerca");
@@ -46,6 +57,34 @@ function ImportGoogle() {
       setLoading(false);
     }
   };
+
+  const handleLoadMore = async () => {
+    if (!lastQuery || loadingMore) return;
+    setLoadingMore(true);
+    setError("");
+    try {
+      const data = await fetchPage(lastQuery.paramKey, lastQuery.paramValue, results.length);
+      const nuovi = data.results || [];
+      // Dedup difensivo per google_volume_id (Google a volte ripete su pagine vicine)
+      setResults((prev) => {
+        const seen = new Set(prev.map((r) => r.google_volume_id));
+        const filtrati = nuovi.filter((r) => !seen.has(r.google_volume_id));
+        return [...prev, ...filtrati];
+      });
+      if (data.totalItems != null) setTotalItems(data.totalItems);
+    } catch (err) {
+      setError(err.message || "Errore durante il caricamento");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Mostra "carica altri" se Google dichiara più risultati totali di quelli già caricati,
+  // oppure se l'ultima pagina era piena (40) — fallback per quando totalItems è inaffidabile
+  const canLoadMore =
+    searched &&
+    results.length > 0 &&
+    (results.length < totalItems || results.length % PAGE_SIZE === 0);
 
   const toggleSelect = (volumeId) => {
     setSelected((prev) => {
@@ -140,7 +179,7 @@ function ImportGoogle() {
         {results.length > 0 && (
           <div className="flex justify-between items-center mb-3 px-1">
             <p className="text-xs font-black text-gray-500 uppercase tracking-widest">
-              {results.length} risultati
+              {results.length}{totalItems > results.length ? ` / ${totalItems}` : ""} risultati
             </p>
             <button
               type="button"
@@ -232,6 +271,19 @@ function ImportGoogle() {
             );
           })}
         </div>
+
+        {canLoadMore && (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-6 py-3 bg-white border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-700 font-black rounded-xl text-xs uppercase tracking-widest active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loadingMore ? "Caricando..." : `Carica altri ${PAGE_SIZE} →`}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Barra fissa "selezionati" */}

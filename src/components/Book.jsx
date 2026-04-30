@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 function Book({
   title,
   author,
@@ -7,6 +9,8 @@ function Book({
   tipo,
   editore,
   serie,
+  cover,
+  showCover = false,
 }) {
   // Coerente con le tue istruzioni: Verde per in corso, Grigio per finito
   const isFinito = stato_opera?.toLowerCase() === "finito";
@@ -17,16 +21,40 @@ function Book({
   const generiList = generi ? generi.split(",").map((g) => g.trim()) : [];
   const displayTitle = title || "Titolo Sconosciuto";
 
+  const [coverErrored, setCoverErrored] = useState(false);
+  const showCoverImg = showCover && cover && !coverErrored;
+
   return (
     <div
       className={`
         bg-white shadow-sm rounded-xl overflow-hidden h-full
-        border border-gray-100 border-r-[6px] ${statoClass} 
+        border border-gray-100 border-r-[6px] ${statoClass}
         transition-all duration-200 hover:shadow-md hover:-translate-y-1 active:scale-[0.98]
         flex flex-col relative
       `}
     >
-      {/* TESTATA (Copertina) */}
+      {/* COPERTINA (immagine reale) — opt-in via showCover */}
+      {showCover && (
+        <div className="relative w-full aspect-2/3 bg-linear-to-br from-gray-100 to-gray-200 overflow-hidden flex-none">
+          {showCoverImg ? (
+            <img
+              src={cover}
+              alt={`Copertina di ${displayTitle}`}
+              loading="lazy"
+              onError={() => setCoverErrored(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300">
+              <svg className="w-12 h-12 sm:w-16 sm:h-16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 2v8l-3-2-3 2V4h6z" />
+              </svg>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TESTATA (titolo + autori) */}
       <div className={`${headerBg} p-3 sm:p-4 border-b border-gray-100 flex-none`}>
         <h2
           className="text-[14px] sm:text-base font-black text-gray-900 leading-tight line-clamp-2 uppercase tracking-tight wrap-break-words pr-10 sm:pr-11"

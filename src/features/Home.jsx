@@ -64,6 +64,9 @@ function CategoryTile({ icon, label, count, linkTo, index = 0 }) {
 function OperaCard({ book, index = 0 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { amount: 0.1, triggerOnce: true });
+  const [coverErrored, setCoverErrored] = useState(false);
+  const cover = book.copertina_principale;
+  const showImg = cover && !coverErrored;
 
   return (
     <motion.div
@@ -74,15 +77,29 @@ function OperaCard({ book, index = 0 }) {
       className="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 flex flex-col overflow-hidden active:scale-[0.97]"
     >
       <Link to={`/opere/${book.id_opera}`} className="w-full h-full flex flex-col p-3">
-        <div className="w-full aspect-2/3 bg-linear-to-br from-blue-50 to-indigo-100 rounded-xl mb-3 flex items-center justify-center border border-gray-100 group-hover:scale-105 transition-transform duration-300">
-          <span className="text-3xl drop-shadow-sm">📕</span>
+        <div className="w-full aspect-2/3 bg-linear-to-br from-blue-50 to-indigo-100 rounded-xl mb-3 overflow-hidden border border-gray-100 group-hover:scale-105 transition-transform duration-300">
+          {showImg ? (
+            <img
+              src={cover}
+              alt={`Copertina di ${book.titolo}`}
+              loading="lazy"
+              onError={() => setCoverErrored(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-blue-300">
+              <svg className="w-10 h-10 sm:w-12 sm:h-12" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 2v8l-3-2-3 2V4h6z" />
+              </svg>
+            </div>
+          )}
         </div>
         <p className="text-[13px] sm:text-sm font-bold text-gray-800 group-hover:text-blue-600 line-clamp-2 leading-snug mb-1 mt-auto">
           {book.titolo}
         </p>
         {book.autori && (
           <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wide line-clamp-1">
-            {book.autori.nome} {book.autori.cognome}
+            {book.autori}
           </p>
         )}
       </Link>
@@ -197,10 +214,12 @@ function Home() {
 
         const [resOpere, resAutori, resSerie, resGeneri, resLetture] = await Promise.all(promises);
 
-        if (resOpere?.ok)  setBooks(await resOpere.json());
-        if (resAutori?.ok) setAutori(await resAutori.json());
-        if (resSerie?.ok)  setSerie(await resSerie.json());
-        if (resGeneri?.ok) setGeneri(await resGeneri.json());
+        const unwrap = (j) => (Array.isArray(j) ? j : j?.data ?? []);
+
+        if (resOpere?.ok)  setBooks(unwrap(await resOpere.json()));
+        if (resAutori?.ok) setAutori(unwrap(await resAutori.json()));
+        if (resSerie?.ok)  setSerie(unwrap(await resSerie.json()));
+        if (resGeneri?.ok) setGeneri(unwrap(await resGeneri.json()));
 
         if (currentUserId && resLetture?.ok) {
           setTutteLetture(await resLetture.json());

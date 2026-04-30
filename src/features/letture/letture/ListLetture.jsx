@@ -21,6 +21,30 @@ const SORT_OPTIONS = [
   { key: "za",       label: "Z → A"       },
 ];
 
+function CoverThumb({ url, title, className = "" }) {
+  const [errored, setErrored] = useState(false);
+  const showImg = url && !errored;
+  return (
+    <div className={`relative shrink-0 bg-linear-to-br from-gray-100 to-gray-200 rounded-md overflow-hidden border border-gray-200 ${className}`}>
+      {showImg ? (
+        <img
+          src={url}
+          alt={title ? `Copertina di ${title}` : "Copertina"}
+          loading="lazy"
+          onError={() => setErrored(true)}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-gray-300">
+          <svg className="w-1/2 h-1/2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 2v8l-3-2-3 2V4h6z" />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ListLetture() {
   const { user } = useAuth();
   const [letture, setLetture] = useState([]);
@@ -335,8 +359,17 @@ function ListLetture() {
                         className="group hover:bg-blue-50/40 transition-colors cursor-pointer active:bg-blue-100/50"
                       >
                         <td className="px-5 py-4">
-                          <p className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-1">{l.opere?.titolo}</p>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{l.edizioni?.editore || "—"}</p>
+                          <div className="flex items-center gap-3">
+                            <CoverThumb
+                              url={l.edizioni?.copertina_url}
+                              title={l.opere?.titolo}
+                              className="w-10 h-14"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-1">{l.opere?.titolo}</p>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{l.edizioni?.editore || "—"}</p>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-5 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${styles.bg} ${styles.text}`}>
@@ -373,25 +406,32 @@ function ListLetture() {
                   <div
                     key={l.id_lettura}
                     onClick={() => navigate(`/lettura/${l.id_lettura}`)}
-                    className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all"
+                    className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all flex gap-3"
                   >
-                    <div className="flex justify-between items-start mb-3 gap-3">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-black text-gray-800 leading-snug line-clamp-2">{l.opere?.titolo}</h3>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{l.edizioni?.editore || "—"}</p>
+                    <CoverThumb
+                      url={l.edizioni?.copertina_url}
+                      title={l.opere?.titolo}
+                      className="w-14 h-20"
+                    />
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-black text-gray-800 leading-snug line-clamp-2">{l.opere?.titolo}</h3>
+                          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5 truncate">{l.edizioni?.editore || "—"}</p>
+                        </div>
+                        <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider ${styles.bg} ${styles.text}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${styles.dot}`} />
+                          {l.stato.replace("_", " ")}
+                        </span>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider ${styles.bg} ${styles.text}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${styles.dot}`} />
-                        {l.stato.replace("_", " ")}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                      <div className="flex flex-wrap gap-1.5 text-[10px] font-bold text-gray-500 uppercase">
-                        {l.volume   && <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">Vol. {l.volume}</span>}
-                        {l.capitolo && <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">Cap. {l.capitolo}</span>}
-                        {l.pagina   && <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">Pag. {l.pagina}</span>}
+                      <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-gray-50">
+                        <div className="flex flex-wrap gap-1 text-[10px] font-bold text-gray-500 uppercase min-w-0">
+                          {l.volume   && <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">Vol. {l.volume}</span>}
+                          {l.capitolo && <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">Cap. {l.capitolo}</span>}
+                          {l.pagina   && <span className="bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">Pag. {l.pagina}</span>}
+                        </div>
+                        <div className="shrink-0">{renderStars(l.valutazione)}</div>
                       </div>
-                      <div className="shrink-0">{renderStars(l.valutazione)}</div>
                     </div>
                   </div>
                 );

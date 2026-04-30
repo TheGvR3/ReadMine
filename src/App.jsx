@@ -24,6 +24,8 @@ import ListOperePage from "./features/letture/opere/ListOpere";
 import OperaDetail from "./features/letture/opere/OperaDetail";
 import CreateOpera from "./features/letture/opere/CreateOpera";
 import UpdateOpera from "./features/letture/opere/UpdateOpera";
+// Letture - Edizioni
+import EdizioneDetail from "./features/letture/edizioni/EdizioneDetail";
 // Letture - Import Google Books
 import ImportGoogle from "./features/letture/import/ImportGoogle";
 import ImportPreview from "./features/letture/import/ImportPreview";
@@ -115,6 +117,8 @@ function App() {
         <Route path="/opere/:id_opera" element={<OperaDetail />} />
         <Route path="/createopera" element={<CreateOpera />} />
         <Route path="/updateopera/:id_opera" element={<UpdateOpera />} />
+        {/* Rotte per le edizioni */}
+        <Route path="/edizione/:id_edizione" element={<EdizioneDetail />} />
         {/* Import da Google Books */}
         <Route path="/import-google" element={<ImportGoogle />} />
         <Route path="/import-google/preview/:volumeId" element={<ImportPreview />} />

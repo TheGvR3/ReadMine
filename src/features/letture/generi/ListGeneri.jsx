@@ -36,7 +36,8 @@ function ListGeneri() {
         );
 
         if (resGeneri?.ok) {
-          setGeneri(await resGeneri.json());
+          const payload = await resGeneri.json();
+          setGeneri(Array.isArray(payload) ? payload : payload?.data ?? []);
         } else {
           throw new Error("Impossibile caricare i generi");
         }

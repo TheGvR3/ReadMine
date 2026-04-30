@@ -34,7 +34,8 @@ function ListAutori() {
           navigate
         );
         if (response?.ok) {
-          setAutori(await response.json());
+          const payload = await response.json();
+          setAutori(Array.isArray(payload) ? payload : payload?.data ?? []);
         } else {
           throw new Error("Impossibile caricare gli autori");
         }
