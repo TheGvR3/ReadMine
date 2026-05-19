@@ -358,11 +358,6 @@ function OperaDetail() {
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 leading-tight tracking-tight wrap-break-words">
                     {opera.titolo}
                   </h1>
-                  {opera.numero_volume && (
-                    <p className="text-[11px] font-bold text-gray-500 mt-1">
-                      Volume {opera.numero_volume}
-                    </p>
-                  )}
                   {autoriProcessati.length > 0 && (
                     <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-1.5">
                       {autoriProcessati.map((a, i) => (

@@ -36,7 +36,6 @@ function CreateOpera() {
   const [statoOpera, setStatoOpera] = useState("finito");
   const [linguaOriginale, setLinguaOriginale] = useState("it");
   const [descrizione, setDescrizione] = useState("");
-  const [numeroVolume, setNumeroVolume] = useState("");
   const [selectedSerie, setSelectedSerie] = useState(null);
   const [selectedAutori, setSelectedAutori] = useState([]);
   const [selectedGeneri, setSelectedGeneri] = useState([]);
@@ -108,7 +107,6 @@ function CreateOpera() {
         stato_opera: statoOpera,
         lingua_originale: linguaOriginale || null,
         descrizione_opera: descrizione || null,
-        numero_volume: numeroVolume ? parseInt(numeroVolume, 10) : null,
         id_serie: selectedSerie?.value || null,
         autori: selectedAutori.map((a) => a.value),
         generi: selectedGeneri.map((g) => g.value),
@@ -213,28 +211,15 @@ function CreateOpera() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label>Lingua originale</Label>
-              <input
-                type="text"
-                value={linguaOriginale}
-                onChange={(e) => setLinguaOriginale(e.target.value)}
-                placeholder="es. it, en, ja"
-                className="input-base"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>N. volume nella serie</Label>
-              <input
-                type="number"
-                min="1"
-                value={numeroVolume}
-                onChange={(e) => setNumeroVolume(e.target.value)}
-                className="input-base"
-              />
-            </div>
+          <div className="space-y-1">
+            <Label>Lingua originale</Label>
+            <input
+              type="text"
+              value={linguaOriginale}
+              onChange={(e) => setLinguaOriginale(e.target.value)}
+              placeholder="es. it, en, ja"
+              className="input-base"
+            />
           </div>
 
           <div className="space-y-1">

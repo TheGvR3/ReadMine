@@ -37,7 +37,6 @@ function ImportPreview() {
   const [linguaOriginale, setLinguaOriginale] = useState("");
   const [tipoOpera, setTipoOpera] = useState("");
   const [selectedSerie, setSelectedSerie] = useState(null);
-  const [numeroVolumeOpera, setNumeroVolumeOpera] = useState("");
   const [autori, setAutori] = useState([]);
   const [generi, setGeneri] = useState([]);
 
@@ -72,7 +71,6 @@ function ImportPreview() {
         setDescrizione(data.opera.descrizione_opera || "");
         setLinguaOriginale(data.opera.lingua_originale || "");
         setTipoOpera(data.opera.tipo_opera_inferito || "");
-        setNumeroVolumeOpera(data.serie_suggerita?.numero_volume_parsato || "");
         setNumeroVolumeEdizione(data.serie_suggerita?.numero_volume_parsato || "");
         if (data.serie_suggerita?.matched) {
           setSelectedSerie({
@@ -180,7 +178,6 @@ function ImportPreview() {
         body.lingua_originale = linguaOriginale || null;
         body.tipo_opera = parseInt(tipoOpera, 10);
         body.id_serie = selectedSerie?.value || null;
-        body.numero_volume_opera = numeroVolumeOpera ? parseInt(numeroVolumeOpera, 10) : null;
         body.autori = autori
           .filter((a) => a.include)
           .map((a) => a.matched ? { id_autore: a.matched.id_autore } : { nome_autore: a.google_name });
@@ -434,25 +431,17 @@ function ImportPreview() {
                   className="input-base"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <Label>Serie</Label>
-                  <AsyncSelect
-                    cacheOptions
-                    defaultOptions
-                    value={selectedSerie}
-                    loadOptions={loadSerie}
-                    onChange={setSelectedSerie}
-                    placeholder={preview?.serie_suggerita?.nome_parsato || "Cerca serie..."}
-                    styles={selectStyles}
-                    isClearable
-                  />
-                </div>
-                <FieldInput
-                  label="N. volume nella serie"
-                  type="number"
-                  value={numeroVolumeOpera}
-                  onChange={setNumeroVolumeOpera}
+              <div>
+                <Label>Serie</Label>
+                <AsyncSelect
+                  cacheOptions
+                  defaultOptions
+                  value={selectedSerie}
+                  loadOptions={loadSerie}
+                  onChange={setSelectedSerie}
+                  placeholder={preview?.serie_suggerita?.nome_parsato || "Cerca serie..."}
+                  styles={selectStyles}
+                  isClearable
                 />
               </div>
             </Section>

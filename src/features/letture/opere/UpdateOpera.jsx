@@ -17,7 +17,6 @@ function UpdateOpera() {
     id_serie: null,
     lingua_originale: "",
     descrizione_opera: "",
-    numero_volume: "",
     autori: [],
     generi: [],
   });
@@ -76,7 +75,6 @@ function UpdateOpera() {
             id_serie: data.id_serie || null,
             lingua_originale: data.lingua_originale || "",
             descrizione_opera: data.descrizione_opera || "",
-            numero_volume: data.numero_volume || "",
             autori: data.autori_ids || [],
             generi: data.generi_ids || [],
           });
@@ -176,7 +174,6 @@ function UpdateOpera() {
       id_serie: formData.id_serie || null,
       lingua_originale: formData.lingua_originale || null,
       descrizione_opera: formData.descrizione_opera || null,
-      numero_volume: formData.numero_volume ? parseInt(formData.numero_volume, 10) : null,
       autori: formData.autori,
       generi: formData.generi,
     };
@@ -290,33 +287,18 @@ function UpdateOpera() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    Lingua originale
-                  </label>
-                  <input
-                    type="text"
-                    name="lingua_originale"
-                    value={formData.lingua_originale}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-700"
-                    placeholder="it, en, ja"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    N. volume nella serie
-                  </label>
-                  <input
-                    type="number"
-                    name="numero_volume"
-                    min="1"
-                    value={formData.numero_volume}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-700"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Lingua originale
+                </label>
+                <input
+                  type="text"
+                  name="lingua_originale"
+                  value={formData.lingua_originale}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-700"
+                  placeholder="it, en, ja"
+                />
               </div>
 
               <div className="space-y-1">
